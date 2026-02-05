@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Viewer</title>
+  <link rel="stylesheet" href="styles.css"/>
+
+  <!-- 1) WebGazer for eye-tracking -->
+  <script defer src="https://cdn.jsdelivr.net/npm/webgazer/dist/webgazer.min.js"></script>
+  <!-- 2) uuid for stable session IDs -->
+  <script
+    defer
+    src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"
+    integrity="sha512-/6U6id0DqT6a2+0CI1hI4XlqUrIDU0l2jDfigJDKA1onoQN9HBsOZQ8rVfA2sb5AUWZg+Wp8exm2Y2c0Q3/1xQ=="
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Hide the WebGazer video preview boxes off-screen -->
+  <style>
+    #webgazerVideoFeed,
+    #webgazerVideoContainer,
+    #webgazerVideoFeedbackBox {
+      position: fixed !important;
+      top: -9999px !important;
+      left: -9999px !important;
+      width: 1px !important;
+      height: 1px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+  </style>
+
+  <!-- 3) Your existing app logic (now enhanced for AOI logging) -->
+  <script defer src="script.js"></script>
+</head>
+
+<body data-aoi="Task Viewer Body">
+  <div class="start-page" data-aoi="Start Page">
+    <div class="instructions" data-aoi="Welcome Instructions">
+      <p>
+        You will be given 10 tasks. Each task includes a document
+        with information on maltreatment cases. Please enter the details into the
+        data system. If you have no questions, click the "Start" button to begin the tasks.
+      </p>
+    </div>
+    <button onclick="startTasks()" class="start-button" data-aoi="Start Button">
+      Start
+    </button>
+  </div>
+
+  <div class="container" data-aoi="Task Container" style="display:none;">
+    <div class="sidebar" data-aoi="Sidebar">
+        <h2 data-aoi="Tasks Header">Tasks</h2>
+        <a class="current-task" data-aoi="Task Link 1">Task 1</a>
+        <a data-aoi="Task Link 2">Task 2</a>
+        <a data-aoi="Task Link 3">Task 3</a>
+        <a data-aoi="Task Link 4">Task 4</a>
+        <a data-aoi="Task Link 5">Task 5</a>
+        <a data-aoi="Task Link 6">Task 6</a>
+        <a data-aoi="Task Link 7">Task 7</a>
+        <a data-aoi="Task Link 8">Task 8</a>
+        <a data-aoi="Task Link 9">Task 9</a>
+        <a data-aoi="Task Link 10">Task 10</a>
+      </div>
+
+    <div class="main" data-aoi="Main Content">
+      <div class="instructions" id="instrxns" data-aoi="Task Instructions">
+        Please read the instructions for Task 1 carefully before proceeding.
+      </div>
+      <div class="task-content" data-aoi="Task Content">
+        <iframe class="pdf-viewer" src="1.pdf" data-aoi="PDF Viewer"></iframe>
+      </div>
+      <div class="footer" data-aoi="Task Footer">
+        <div class="button" data-aoi="Finished Button">Finished</div>
+        <div class="button" data-aoi="Next Button">Next</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,247 @@
+/* Container - Use MH-Basic styles instead */
+/* Note: Container styles are now in MHBasicInterface.css */
+
+/* Add Button - Use MH-Basic styles */
+.add-button {
+  background-color: #01665e;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.add-button:hover {
+  background-color: #004d47;
+}
+
+/* Data Table - Use MH-Basic table styles */
+.data-table,
+.mh-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+.data-table th,
+.data-table td,
+.mh-log-table th,
+.mh-log-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+.data-table th,
+.mh-log-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+/* Table Container - Match MH-Basic style */
+.mh-log-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Modal Content */
+.modal-content {
+  background: #fff;
+  border-radius: 6px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+.modal-header,
+.modal-footer {
+  padding: 12px 16px;
+  background: #f5f5f5;
+}
+.modal-body {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Modal Title & Close */
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 1.25rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Modal Save */
+.modal-save {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Form Rows - Use MH-Basic form-row styles */
+/* Note: Form row styles are now in MHBasicInterface.css */
+/* Override for modal forms to match MH-Basic style */
+.modal-body .form-row {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding-bottom: 15px;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.modal-body .form-row > label {
+  display: block;
+  width: 200px;
+  font-weight: bold;
+  margin-right: 10px;
+  text-align: right;
+  padding-top: 4px;
+}
+
+.modal-body .form-row input[type="text"],
+.modal-body .form-row input[type="date"],
+.modal-body .form-row input[type="number"],
+.modal-body .form-row select,
+.modal-body .form-row textarea {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Inline Groups - Match MH-Basic style */
+.inline-group {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  align-items: center;
+}
+.inline-group select,
+.inline-group input[type="number"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+.inline-group button {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #e9e9e9;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.3s;
+}
+.inline-group button:hover {
+  background: #d4d4d4;
+}
+
+/* Setup Modal Styles */
+.setup-actions {
+  padding: 8px 16px;
+  border-bottom: 1px solid #ddd;
+  background: #f9f9f9;
+}
+.add-new-record {
+  background-color: #e9ecef;
+  color: #007bff;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.add-new-record:hover {
+  background-color: #dde2e6;
+}
+
+.setup-table-container {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.setup-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.setup-table th,
+.setup-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+.setup-table th {
+  background: #f4f4f4;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Editing Row */
+.editing-row input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.update-btn,
+.cancel-btn {
+  margin-right: 8px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.update-btn {
+  background: #007bff;
+  color: #fff;
+}
+.cancel-btn {
+  background: #e9ecef;
+  color: #333;
+}
+.cancel-btn:hover {
+  background: #d4d4d4;
+}
+
+/* Expand Icon */
+.expand-icon {
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 0.2s;
+}

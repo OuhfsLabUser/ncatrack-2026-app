@@ -1,0 +1,149 @@
+/* Container */
+.people-case-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* Header */
+.people-case-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.people-case-header h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+/* Form */
+.people-case-form {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+/* Section */
+.pc-section {
+  margin-bottom: 30px;
+}
+
+.pc-section h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+
+/* Actions (Add/Edit/Bio Buttons) */
+.pc-actions {
+  margin-bottom: 15px;
+}
+
+.pc-add-button,
+.pc-edit-button,
+.pc-bio-button {
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.pc-add-button:hover,
+.pc-edit-button:hover,
+.pc-bio-button:hover {
+  background-color: #0056b3;
+}
+
+/* Table Styles */
+.pc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.pc-table th,
+.pc-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.pc-table th {
+  background-color: #f4f4f4;
+}
+
+/* Alleged Offender Unknown Checkbox & Comments */
+.pc-checkbox-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.pc-checkbox-row label {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pc-comments-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.pc-comments-row label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.pc-comments-row textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Form Buttons (Save/Cancel) */
+.pc-form-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.save-button,
+.cancel-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+  transition: background-color 0.3s;
+}
+
+.save-button {
+  background-color: #007bff;
+}
+
+.cancel-button {
+  background-color: #dc3545;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+}

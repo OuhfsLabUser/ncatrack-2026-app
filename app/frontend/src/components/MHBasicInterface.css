@@ -1,0 +1,375 @@
+/* Container styling */
+.mh-basic-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* Header */
+.mh-basic-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.mh-basic-header h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+/* Form layout */
+.mh-basic-form {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+/* Section styling */
+.mh-section {
+  margin-top: 24px; /* Increased spacing between sections */
+  margin-bottom: 24px; /* Increased spacing between sections */
+  padding: 16px; /* Internal padding for content area */
+}
+
+.mh-section h2 {
+  margin-top: 0;
+  margin-bottom: 12px; /* Spacing between title and content */
+  margin-left: -36px; /* Extend to full width by offsetting parent padding (20px) + section padding (16px) */
+  margin-right: -36px;
+  padding: 12px 36px 8px 36px; /* Add padding: top 12px, sides 36px (20px parent + 16px section), bottom 8px for separation */
+  font-size: 1.2rem;
+  font-weight: 400; /* Normal weight instead of bold */
+  background-color: #f5f5f5; /* Light gray background */
+  border-bottom: 1px solid #ccc;
+  border-radius: 4px 4px 0 0; /* Rounded top corners */
+  color: #333; /* Ensure text remains dark */
+}
+
+/* Form rows */
+.form-row {
+  width: 100%;
+  max-width: 1200px;       /* Adjustable max width */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 18px;   /* Increased row spacing */
+  padding-bottom: 15px; /* Increased row spacing */
+  margin: 0 auto;     /* Always centered */
+}
+
+.form-row label {
+  display: block;
+  width: 200px;
+  font-weight: bold;
+  margin-right: 10px;
+  text-align: right;
+  padding-top: 4px;                /* Slight downward shift to align with checkbox */
+}
+
+/* Inputs */
+.form-row input[type="text"],
+.form-row input[type="date"],
+.form-row input[type="number"],
+.form-row select,
+textarea {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Checkbox groups in form-row - occupies the right column like input */
+.form-row .checkbox-group {
+  flex: 1;  /* Same as input, occupies remaining space */
+  display: flex;
+  flex-wrap: wrap;  /* Allow wrapping, but prioritize horizontal layout */
+  align-items: center;  /* Vertically center aligned */
+  gap: 10px 20px;  /* Unified spacing: row spacing 10px, column spacing 20px */
+  padding: 4px 0 0 0;  /* Top padding aligned with form-row label's padding-top: 4px */
+  box-sizing: border-box;
+  min-height: 32px;  /* Ensure minimum height, consistent with input height */
+}
+
+/* Checkbox labels inside checkbox-group - override form-row label styles */
+.form-row .checkbox-group label {
+  display: flex;  /* Override form-row label's display: block */
+  align-items: center;  /* Vertically center checkbox and text */
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;  /* Prevent text wrapping, keep checkbox on same line */
+  margin: 0;  /* Remove default margin, use gap for unified spacing */
+  padding: 0;  /* Remove default padding */
+  width: auto;  /* Override form-row label's width: 200px */
+  text-align: left;  /* Override form-row label's text-align: right */
+  font-weight: normal;  /* Override form-row label's font-weight: bold */
+  padding-top: 0;  /* Override form-row label's padding-top: 4px */
+  margin-right: 0;  /* Override form-row label's margin-right: 10px */
+}
+
+/* Form field wrapper - left-right column layout */
+.form-field-wrapper {
+  display: flex;
+  align-items: center;  /* Changed to center, vertically align label and checkbox */
+  width: 100%;
+  margin-bottom: 16px;  /* Unified vertical spacing between fields */
+  box-sizing: border-box;
+  min-height: 32px;  /* Unified minimum row height, ensure all fields have consistent row height */
+}
+
+/* Label container styles */
+.field-label-container {
+  width: 240px;  /* Unified column width, ensure all titles are vertically aligned */
+  flex-shrink: 0;  /* Fixed label width, prevent compression */
+  text-align: right;  /* Right-align label, align with right content */
+  padding-top: 4px;  /* Fine-tune: vertically center label with checkbox */
+  font-weight: bold;
+  margin-right: 20px;  /* Increase spacing with right content */
+  box-sizing: border-box;
+  line-height: 1.5;  /* Unified line height */
+}
+
+/* Checkbox content container styles */
+.checkbox-group-container {
+  flex-grow: 1;  /* Occupy all remaining width of parent container */
+  min-width: 0;  /* Allow flex child elements to shrink */
+  box-sizing: border-box;
+}
+
+/* Checkbox groups - horizontal layout (general styles, will be overridden in form-row) */
+.checkbox-group {
+  display: flex;  /* Changed to flex layout, horizontal arrangement */
+  flex-wrap: wrap;  /* Allow wrapping, but prioritize horizontal layout */
+  align-items: center;  /* Vertically center aligned */
+  gap: 10px 20px;  /* Unified spacing: row spacing 10px, column spacing 20px */
+  width: 100%;
+  padding: 0;  /* Remove top/bottom padding, maintain consistent row height */
+  box-sizing: border-box;
+}
+
+/* Checkbox label alignment */
+.checkbox-group label {
+  display: flex;
+  align-items: center;  /* Vertically center checkbox and text */
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;  /* Prevent text wrapping, keep checkbox on same line */
+  margin: 0;  /* Remove default margin, use gap for unified spacing */
+  padding: 0;  /* Remove default padding */
+}
+
+/* Column layout for many checkboxes (override horizontal layout, for scenarios requiring vertical arrangement) */
+.checkbox-group.column-layout {
+  display: flex;
+  flex-direction: column;  /* Vertical arrangement */
+  align-items: flex-start;  /* Left aligned */
+  gap: 8px;  /* Vertical spacing */
+  flex-wrap: nowrap;  /* Do not allow wrapping */
+}
+
+
+/* For PsychoSocial Notes with a plus button */
+.plus-group {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.plus-group input {
+  flex: 1;
+}
+
+.add-button {
+  background-color: #01665e;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.add-button:hover {
+  background-color: #01665e;
+}
+
+/* Logs & Tables */
+.mh-log-actions {
+  margin-bottom: 12px; /* Increased spacing between buttons and table */
+}
+
+.session-log-button {
+  background-color: #01665e;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.session-log-button:hover {
+  background-color: #01665e;
+}
+
+.mh-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.mh-log-table th,
+.mh-log-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.mh-log-table th {
+  background-color: #f4f4f4;
+}
+
+/* Contact Info */
+.contact-info-row {
+  display: flex;
+  gap: 20px;
+}
+
+.contact-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Documents Grid */
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-gap: 10px;
+}
+
+.grid-header {
+  display: contents;
+  font-weight: bold;
+  background-color: #f4f4f4;
+  padding: 10px 0;
+}
+
+.grid-header span {
+  display: block;
+}
+
+.no-items {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 15px;
+  color: #777;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.select-files-button {
+  grid-column: 1 / -1;
+  padding: 10px 15px;
+  margin-top: 15px;
+  background-color: #01665e;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.select-files-button:hover {
+  background-color: #004d47;
+}
+
+.file-size-info,
+.storage-warning {
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 10px;
+}
+
+/* Action Buttons - Top and Sticky */
+.mh-action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.mh-action-buttons-top {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 20px;
+  padding: 0;
+}
+
+/* Sticky buttons at bottom when scrolling */
+.mh-action-buttons-sticky {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  padding: 15px 20px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none; /* Hidden by default, shown when scrolling */
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0;
+  border-top: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+/* Show sticky buttons when top buttons are out of view */
+.mh-basic-container:not(.top-buttons-visible) .mh-action-buttons-sticky {
+  display: flex;
+}
+
+.save-button,
+.cancel-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s, opacity 0.3s;
+  min-width: 100px;
+}
+
+.save-button {
+  background-color: #007bff;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #f5f5f5;
+}
+
+.cancel-button:hover {
+  background-color: #f5f5f5;
+}
+
+/* Legacy form buttons (kept for backward compatibility) */
+.mh-form-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}

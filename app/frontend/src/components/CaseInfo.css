@@ -1,0 +1,95 @@
+/* ===== CASE DETAILS SECTION ===== */
+.case-details-section .cd-form {
+    width: 100%;
+    padding: 10px;
+  }
+  
+  .case-details-section .form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .case-details-section label {
+    width: 280px;
+    text-align: right;
+    padding-right: 10px;
+    font-weight: normal;
+    font-size: 14px;
+  }
+  
+  .case-details-section label.required {
+    color: #d00;
+    font-weight: bold;
+  }
+  
+  .case-details-section input[type="text"],
+  .case-details-section input[type="date"],
+  .case-details-section select {
+    width: 300px;
+    height: 26px;
+    padding: 3px 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  
+  .case-details-section .add-btn {
+    margin-left: 6px;
+    background: #f9f9f9;
+    border: 1px solid #999;
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  
+  .case-details-section .add-btn:hover {
+    background-color: #e0f2f1;
+  }
+  
+  .checkbox-row {
+    align-items: flex-start;
+  }
+  
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin-left: 10px;
+  }
+  
+  .checkbox-group.two-col {
+    max-width: 400px;
+  }
+  
+  .checkbox-group label {
+    width: 120px;
+  }
+  
+  .input-with-buttons {
+    display: flex;
+    align-items: center;
+  }
+  
+  .plus-minus {
+    display: flex;
+    flex-direction: column;
+    margin-left: 4px;
+  }
+  
+  .plus-minus button {
+    background-color: #007acc;
+    color: #fff;
+    border: none;
+    width: 20px;
+    height: 20px;
+    line-height: 18px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .plus-minus button:hover {
+    background-color: #005fa3;
+  }
+  

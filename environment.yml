@@ -1,0 +1,16 @@
+name: CARE
+channels:
+  - defaults
+dependencies:
+  - faker
+  - pandas=2.2.2
+  - psycopg2
+  - python=3.10
+  - rich
+  - numpy=1.24
+  - pip
+  - pip:
+      - tkcalendar
+      - sv-ttk
+      - faker_education
+prefix: /home/zanel/anaconda3/envs/CARE

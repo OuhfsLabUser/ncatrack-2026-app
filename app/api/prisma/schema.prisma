@@ -1,0 +1,480 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model cac_agency {
+  agency_id                                                               Int                       @id
+  cac_id                                                                  Int                       @db.SmallInt
+  agency_name                                                             String                    @db.VarChar(100)
+  addr_line_1                                                             String?                   @db.VarChar(50)
+  addr_line_2                                                             String?                   @db.VarChar(50)
+  city                                                                    String?                   @db.VarChar(20)
+  state_abbr                                                              String?                   @db.VarChar(2)
+  phone_number                                                            String?                   @db.VarChar(20)
+  zip_code                                                                String?                   @db.VarChar(20)
+  child_advocacy_center                                                   child_advocacy_center     @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case_cac_case_mh_agency_idTocac_agency                              cac_case[]                @relation("cac_case_mh_agency_idTocac_agency")
+  cac_case_cac_case_mh_referral_agency_idTocac_agency                     cac_case[]                @relation("cac_case_mh_referral_agency_idTocac_agency")
+  cac_case_cac_case_va_agency_idTocac_agency                              cac_case[]                @relation("cac_case_va_agency_idTocac_agency")
+  cac_case_cac_case_va_referral_agency_idTocac_agency                     cac_case[]                @relation("cac_case_va_referral_agency_idTocac_agency")
+  case_mh_assessment_case_mh_assessment_agency_idTocac_agency             case_mh_assessment[]      @relation("case_mh_assessment_agency_idTocac_agency")
+  case_mh_assessment_case_mh_assessment_mh_provider_agency_idTocac_agency case_mh_assessment[]      @relation("case_mh_assessment_mh_provider_agency_idTocac_agency")
+  case_mh_provider                                                        case_mh_provider[]
+  case_mh_session_log_enc                                                 case_mh_session_log_enc[]
+  case_mh_treatment_plans                                                 case_mh_treatment_plans[]
+  case_va_session_log                                                     case_va_session_log[]
+  employee                                                                employee[]
+}
+
+model cac_case {
+  cac_id                    Int       @db.SmallInt
+  case_id                   Int       @id
+  case_number               String?   @db.VarChar(20)
+  cac_received_date         DateTime? @db.Date
+  case_closed_date          DateTime? @db.Date
+  closed_reason_id          Int?
+  created_date              DateTime? @db.Date
+  mh_lead_employee_id       Int?
+  mh_agency_id              Int?
+  mh_case_number            String?   @db.VarChar(20)
+  mh_mdt_ready              Boolean?
+  mh_na                     Boolean?
+  mh_referral_agency_id     Int?
+  mh_referral_date          DateTime? @db.Date
+  mh_referral_source        String?   @db.VarChar(50)
+  mh_therapy_accepted       Boolean?
+  mh_therapy_complete_date  DateTime? @db.Date
+  mh_therapy_end_reason_id  Int?
+  mh_therapy_offered_date   DateTime? @db.Date
+  mh_therapy_record_created Boolean?
+
+  va_agency_id             Int?
+  va_case_number           String?   @db.VarChar(20)
+  va_claim_denied_reason   String?   @db.VarChar(200)
+  va_claim_number          String?   @db.VarChar(20)
+  va_claim_status_id       Int?
+  va_have_birth_cert       Boolean?
+  va_has_police_report     Boolean?
+  va_mdt_ready             Boolean?
+  va_na                    Boolean?
+  va_referral_agency_id    Int?
+  va_referral_date         DateTime? @db.Date
+  va_services_accepted     Boolean?
+  va_services_offered_date DateTime? @db.Date
+  va_services_end_date     DateTime? @db.Date
+
+  case_manager_agency      String?   @db.VarChar(255)
+  case_manager             String?   @db.VarChar(255)
+  mdt_meeting_types        String?
+
+  child_advocacy_center                                 child_advocacy_center @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency_cac_case_mh_agency_idTocac_agency          cac_agency?           @relation("cac_case_mh_agency_idTocac_agency", fields: [mh_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency_cac_case_mh_referral_agency_idTocac_agency cac_agency?           @relation("cac_case_mh_referral_agency_idTocac_agency", fields: [mh_referral_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency_cac_case_va_agency_idTocac_agency          cac_agency?           @relation("cac_case_va_agency_idTocac_agency", fields: [va_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency_cac_case_va_referral_agency_idTocac_agency cac_agency?           @relation("cac_case_va_referral_agency_idTocac_agency", fields: [va_referral_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+
+  case_mh_assessment                case_mh_assessment[]
+  case_mh_assessment_measure_scores case_mh_assessment_measure_scores[]
+  case_mh_provider                  case_mh_provider[]
+  case_mh_session_attendee          case_mh_session_attendee[]
+  case_mh_session_attribute_group   case_mh_session_attribute_group[]
+  case_mh_session_log_enc           case_mh_session_log_enc[]
+  case_mh_treatment_plans           case_mh_treatment_plans[]
+
+  case_person              case_person[]
+  case_va_session_attendee case_va_session_attendee[]
+  case_va_session_log      case_va_session_log[]
+}
+
+model case_mh_assessment {
+  cac_id                                                          Int                                 @db.SmallInt
+  case_id                                                         Int
+  assessment_id                                                   Int                                 @id
+  mh_provider_agency_id                                           Int?
+  timing_id                                                       Int?
+  session_date                                                    DateTime?                           @db.Date
+  assessment_date                                                 DateTime?                           @db.Date
+  agency_id                                                       Int?
+  provider_employee_id                                            Int?
+  assessment_instrument_id                                        Int?
+  comments                                                        String?                             @db.VarChar(255)
+  cac_agency_case_mh_assessment_agency_idTocac_agency             cac_agency?                         @relation("case_mh_assessment_agency_idTocac_agency", fields: [agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  case_mh_assessment_instrument                                   case_mh_assessment_instrument?      @relation(fields: [assessment_instrument_id], references: [instrument_id], onDelete: NoAction, onUpdate: NoAction)
+  child_advocacy_center                                           child_advocacy_center               @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case                                                        cac_case                            @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency_case_mh_assessment_mh_provider_agency_idTocac_agency cac_agency?                         @relation("case_mh_assessment_mh_provider_agency_idTocac_agency", fields: [mh_provider_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  employee                                                        employee?                           @relation(fields: [provider_employee_id], references: [employee_id], onDelete: NoAction, onUpdate: NoAction)
+  case_mh_assessment_measure_scores                               case_mh_assessment_measure_scores[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model case_mh_assessment_diagnosis {
+  case_id               Int
+  diagnosis_date        DateTime @db.Date
+  mh_provider_agency_id Int?
+
+  @@ignore
+}
+
+model case_mh_assessment_instrument {
+  instrument_id                     Int                                 @id
+  assessment_name                   String?                             @db.VarChar(255)
+  instrument_scores                 String?                             @db.VarChar(255)
+  case_mh_assessment                case_mh_assessment[]
+  case_mh_assessment_measure_scores case_mh_assessment_measure_scores[]
+  case_mh_instrument_measure       case_mh_instrument_measure[]
+}
+
+model case_mh_instrument_measure {
+  measure_id     Int                           @id @default(autoincrement())
+  instrument_id  Int
+  measure_name   String                        @db.VarChar(255) // Label name
+  sequence       Int?                          @default(0)      
+
+  instrument     case_mh_assessment_instrument @relation(fields: [instrument_id], references: [instrument_id], onDelete: Cascade)
+  scores         case_mh_assessment_measure_scores[]
+}
+
+model case_mh_assessment_measure_scores {
+  score_id                      Int                           @id
+  cac_id                        Int                           @db.SmallInt
+  case_id                       Int
+  assessment_id                 Int
+  instrument_id                 Int
+  mh_assessment_scores          String?                       @db.VarChar(255) 
+  measure_id                    Int?                        
+  case_mh_assessment            case_mh_assessment            @relation(fields: [assessment_id], references: [assessment_id], onDelete: NoAction, onUpdate: NoAction)
+  child_advocacy_center         child_advocacy_center         @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case                      cac_case                      @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  case_mh_assessment_instrument case_mh_assessment_instrument @relation(fields: [instrument_id], references: [instrument_id], onDelete: NoAction, onUpdate: NoAction)
+  measure                       case_mh_instrument_measure?   @relation(fields: [measure_id], references: [measure_id])
+}
+
+model case_mh_provider {
+  agency_id              Int?
+  case_id                Int
+  case_number            String?     @db.VarChar(20)
+  id                     Int         @id
+  lead_employee_id       Int?
+  provider_type_id       Int?
+  therapy_accepted       Boolean?
+  therapy_complete_date  DateTime?   @db.Date
+  therapy_end_reason_id  Int?
+  therapy_offered_date   DateTime?   @db.Date
+  therapy_record_created Boolean?
+  cac_agency             cac_agency? @relation(fields: [agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case               cac_case    @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  employee               employee?   @relation(fields: [lead_employee_id], references: [employee_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model case_mh_service_barriers {
+  id              Int  @id
+  number_of_miles Int?
+  barrier_id      Int?
+}
+
+model case_mh_session_attendee {
+  person_id                   Int
+  cac_id                      Int                     @db.SmallInt
+  case_id                     Int
+  case_mh_session_attendee_id Int                     @id
+  case_mh_session_id          Int
+  child_advocacy_center       child_advocacy_center   @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case                    cac_case                @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  case_mh_session_log_enc     case_mh_session_log_enc @relation(fields: [case_mh_session_id], references: [case_mh_session_id], onDelete: NoAction, onUpdate: NoAction)
+  person                      person                  @relation(fields: [person_id], references: [person_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model case_mh_session_attribute_group {
+  id                          Int                     @id
+  cac_id                      Int                     @db.SmallInt
+  case_id                     Int
+  case_mh_session_id          Int
+  attribute_group_description String?                 @db.VarChar(255)
+  attributes                  String?                 @db.VarChar(255)
+  attribute_value             Int?
+  child_advocacy_center       child_advocacy_center   @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case                    cac_case                @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  case_mh_session_log_enc     case_mh_session_log_enc @relation(fields: [case_mh_session_id], references: [case_mh_session_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model case_mh_session_log_enc {
+  cac_id                          Int                               @db.SmallInt
+  case_id                         Int
+  case_mh_session_id              Int                               @id
+  comments                        String?                           @db.VarChar(200)
+  start_time                      String?                           @db.VarChar(20)
+  end_time                        String?                           @db.VarChar(20)
+  intervention_id                 Int?
+  location_id                     Int?
+  onsite                          Boolean?
+  provider_agency_id              Int?
+  provider_employee_id            Int?
+  session_date                    DateTime                          @db.Date
+  session_status_id               Int
+  session_type_id                 Int?
+  recurring                       Boolean?
+  recurring_fre                   String?                           @db.VarChar(20)
+  recurring_duration              Int?
+  recurring_duration_unit         String?                           @db.VarChar(255)
+  case_mh_session_attendee        case_mh_session_attendee[]
+  case_mh_session_attribute_group case_mh_session_attribute_group[]
+  child_advocacy_center           child_advocacy_center             @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case                        cac_case                          @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency                      cac_agency?                       @relation(fields: [provider_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  employee                        employee?                         @relation(fields: [provider_employee_id], references: [employee_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model case_mh_treatment_models {
+  id                      Int                       @id
+  model_name              String?                   @db.VarChar(255)
+  case_mh_treatment_plans case_mh_treatment_plans[]
+}
+
+model case_mh_treatment_plans {
+  authorized_status_id     Int?
+  cac_id                   Int                       @db.SmallInt
+  case_id                  Int
+  duration                 Int?
+  duration_unit            String?                   @db.VarChar(255)
+  id                       Int                       @id
+  planned_end_date         DateTime?                 @db.Date
+  planned_review_date      DateTime?                 @db.Date
+  planned_start_date       DateTime?                 @db.Date
+  provider_agency_id       Int?
+  provider_employee_id     Int?
+  treatment_model_id       Int?
+  treatment_plan_date      DateTime?                 @db.Date
+  session_notes            String?                   @db.Text
+  goals_progress           String?                   @db.Text
+  privacy_forms            String?                   @db.Text
+  consents                 String?                   @db.Text
+  child_advocacy_center    child_advocacy_center     @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case                 cac_case                  @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency               cac_agency?               @relation(fields: [provider_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  employee                 employee?                 @relation(fields: [provider_employee_id], references: [employee_id], onDelete: NoAction, onUpdate: NoAction)
+  case_mh_treatment_models case_mh_treatment_models? @relation(fields: [treatment_model_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model case_person {
+  person_id Int
+  case_id   Int
+  cac_id    Int @db.SmallInt
+
+  // Contact Information
+  address_line_1    String?   @db.VarChar(200)
+  address_line_2    String?   @db.VarChar(200)
+  city              String?   @db.VarChar(50)
+  state_abbr        String?   @db.VarChar(20)
+  zip               String?   @db.VarChar(20)
+  county            String?   @db.VarChar(20)
+  region            String?   @db.VarChar(20)
+  out_of_country    Boolean?
+  start_date        DateTime? @db.Date
+  end_date          DateTime? @db.Date
+  home_phone_number String?   @db.VarChar(200)
+  cell_phone_number String?   @db.VarChar(200)
+  work_phone_number String?   @db.VarChar(200)
+  email_address     String?   @db.VarChar(200)
+
+  // Case Specific Information
+  victim_status                 String?  @db.VarChar(20)
+  age                           Int? //Age at Time of Referral
+  age_unit                      String?  @db.VarChar(20)
+  school_or_employer            String?  @db.VarChar(200)
+  education_level_id            String?
+  marital_status_id             String?
+  income_level_id               String?
+  problematic_sex               Boolean?
+  mili_connection               Boolean?
+  mili_type_id                  String?
+  mili_dependent_relationship   String? // Military Dependent Relationship
+  mili_connection_name          String? // Military Connection Name
+  custom_field_1                String?
+  csf_eligible_2                Boolean?
+  family_transport_assistance_3 Boolean?
+  custom_field_4                String?
+  community_5                   String?
+  case_person_custom_field_6    String?
+  case_person_custom_field_7    String?
+  case_person_custom_field_8    String?
+  case_person_custom_field_9    String?
+
+  custody         Boolean?
+  relationship_id Int?
+  role_id         Int?
+  same_household  Boolean?
+
+  child_advocacy_center child_advocacy_center @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case              cac_case              @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  person                person                @relation(fields: [person_id], references: [person_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([person_id, case_id])
+}
+
+model case_va_session_attendee {
+  case_id                     Int
+  case_va_session_attendee_id Int                 @id
+  case_va_session_id          Int
+  person_id                   Int
+  cac_case                    cac_case            @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  case_va_session_log         case_va_session_log @relation(fields: [case_va_session_id], references: [case_va_session_id], onDelete: NoAction, onUpdate: NoAction)
+  person                      person              @relation(fields: [person_id], references: [person_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model case_va_session_log {
+  cac_id                   Int                        @db.SmallInt
+  case_id                  Int
+  case_va_session_id       Int                        @id
+  start_time               DateTime?                  @db.Timestamp(6)
+  end_time                 DateTime?                  @db.Timestamp(6)
+  va_provider_agency_id    Int?
+  session_date             DateTime?                  @db.Date
+  session_status           Int?
+  case_va_session_attendee case_va_session_attendee[]
+  child_advocacy_center    child_advocacy_center      @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_case                 cac_case                   @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction)
+  cac_agency               cac_agency?                @relation(fields: [va_provider_agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  case_va_session_service  case_va_session_service[]
+}
+
+model case_va_session_service {
+  cac_id                     Int                   @db.SmallInt
+  case_va_session_id         Int
+  case_va_session_service_id Int                   @id
+  service_type_id            Int
+  child_advocacy_center      child_advocacy_center @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  case_va_session_log        case_va_session_log   @relation(fields: [case_va_session_id], references: [case_va_session_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model child_advocacy_center {
+  cac_id                            Int                                 @id @db.SmallInt
+  cac_name                          String                              @db.VarChar(50)
+  addr_line_1                       String?                             @db.VarChar(50)
+  addr_line_2                       String?                             @db.VarChar(50)
+  city                              String?                             @db.VarChar(20)
+  state_abbr                        String?                             @db.VarChar(2)
+  phone_number                      String?                             @db.VarChar(20)
+  zip_code                          String?                             @db.VarChar(20)
+  cac_agency                        cac_agency[]
+  cac_case                          cac_case[]
+  case_mh_assessment                case_mh_assessment[]
+  case_mh_session_attendee          case_mh_session_attendee[]
+  case_mh_session_attribute_group   case_mh_session_attribute_group[]
+  case_mh_session_log_enc           case_mh_session_log_enc[]
+  case_mh_treatment_plans           case_mh_treatment_plans[]
+  case_person                       case_person[]
+  case_va_session_log               case_va_session_log[]
+  case_va_session_service           case_va_session_service[]
+  employee                          employee[]
+  person                            person[]
+  case_mh_assessment_measure_scores case_mh_assessment_measure_scores[]
+}
+
+model employee {
+  employee_id             Int                       @id
+  agency_id               Int
+  cac_id                  Int                       @db.SmallInt
+  email_addr              String?                   @db.VarChar(50)
+  first_name              String?                   @db.VarChar(20)
+  last_name               String?                   @db.VarChar(20)
+  job_title               String?                   @db.VarChar(200)
+  phone_number            String?                   @db.VarChar(20)
+  case_mh_assessment      case_mh_assessment[]
+  case_mh_provider        case_mh_provider[]
+  case_mh_session_log_enc case_mh_session_log_enc[]
+  case_mh_treatment_plans case_mh_treatment_plans[]
+  cac_agency              cac_agency                @relation(fields: [agency_id], references: [agency_id], onDelete: NoAction, onUpdate: NoAction)
+  child_advocacy_center   child_advocacy_center     @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model employee_account {
+  employee_id      Int       @id
+  date_modified    DateTime? @db.Date
+  account_disabled Boolean?
+}
+
+model example {
+  id   Int    @id @default(autoincrement())
+  name String
+}
+
+model person {
+  cac_id                     Int       @db.SmallInt
+  person_id                  Int       @id
+  first_name                 String?   @db.VarChar(256)
+  middle_name                String?   @db.VarChar(256)
+  last_name                  String?   @db.VarChar(256)
+  suffix                     String?   @db.VarChar(256)
+  nick_name                  String?   @db.VarChar(256)
+  ssn                        String?   @db.VarChar(9)
+  date_of_birth              DateTime? @db.Date
+  date_of_death              DateTime? @db.Date
+  gender                     String?   @db.VarChar(20)
+  race                       String?   @db.VarChar(256)
+  religion                   String?   @db.VarChar(256)
+  prior_convictions          Boolean?
+  convicted_against_children Boolean?
+  sex_offender               Boolean?
+  bio_custom_field_7         String?   @db.VarChar(256)
+  bio_custom_field_8         String?   @db.VarChar(256)
+  comments_for_people        String?   @db.VarChar(512)
+  csec                       String?   @db.VarChar(512)
+  csec_involvement           String?   @db.VarChar(512)
+  custom_field               String?   @db.VarChar(512)
+  date_added                 DateTime? @db.Date
+  developmental_age          String?   @db.VarChar(256)
+  first_language             String?   @db.VarChar(256)
+  housing_insecurity_risk    String?   @db.VarChar(256)
+  material_involvement       String?   @db.VarChar(512)
+  pronouns                   String?   @db.VarChar(20)
+  risk_factors               String?   @db.VarChar(512)
+  self_identified_gender     String?   @db.VarChar(30)
+  special_needs              String?   @db.VarChar(512)
+  special_populations        String?   @db.VarChar(512)
+  tribe                      String?   @db.VarChar(256)
+  voca                       String?   @db.VarChar(512)
+  ethnicity_6                String?   @db.VarChar(256)
+  sex_predator               Boolean?
+
+  // Relations
+  child_advocacy_center    child_advocacy_center      @relation(fields: [cac_id], references: [cac_id], onDelete: NoAction, onUpdate: NoAction)
+  case_mh_session_attendee case_mh_session_attendee[]
+  case_person              case_person[]
+  case_va_session_attendee case_va_session_attendee[]
+}
+
+model pick_list {
+  list_id            Int                @id @default(autoincrement())
+  category_id        Int
+  list_name          String             @db.VarChar(100)
+  pick_list_category pick_list_category @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+  pick_list_item     pick_list_item[]
+}
+
+model pick_list_category {
+  category_id   Int         @id @default(autoincrement())
+  category_name String      @db.VarChar(100)
+  pick_list     pick_list[]
+}
+
+model pick_list_item {
+  item_id       Int       @id @default(autoincrement())
+  list_id       Int
+  value         String    @db.VarChar(255)
+  display_order Int       @default(0)
+  pick_list     pick_list @relation(fields: [list_id], references: [list_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model state_table {
+  state_abbr String? @unique @db.VarChar(2)
+  state_name String? @unique @db.VarChar(20)
+
+  @@ignore
+}

@@ -1,0 +1,642 @@
+/* Tab Switcher */
+.session-log-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  background: transparent;
+}
+
+.session-log-tab {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
+  position: relative;
+  bottom: -2px;
+  margin-right: 0;
+}
+
+.session-log-tab:hover {
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+.session-log-tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  font-weight: 600;
+  background-color: transparent;
+}
+
+/* Content Area */
+.session-log-content {
+  min-height: 400px;
+}
+
+/* Agenda View - Action Buttons */
+.session-log-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px; /* Increased spacing between buttons and table */
+  padding: 10px 0;
+}
+
+.session-log-actions-left {
+  display: flex;
+  gap: 10px;
+}
+
+.session-log-actions-right {
+  display: flex;
+  gap: 10px;
+}
+
+.session-log-button {
+  background-color: #01665e;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  font-size: 0.9rem;
+}
+
+.session-log-button:hover {
+  background-color: #003C30;
+}
+
+.session-log-nav-button {
+  background-color: #01665e;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  font-size: 0.9rem;
+}
+
+.session-log-nav-button:hover {
+  background-color: #003C30;
+}
+
+/* Agenda View - Table */
+.session-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background: #fff;
+}
+
+.session-log-table th,
+.session-log-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.session-log-table th {
+  background-color: #f4f4f4;
+  font-weight: 600;
+}
+
+.session-log-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.no-items-cell {
+  text-align: center;
+  color: #777;
+  padding: 40px !important;
+}
+
+/* Date column layout: big day number + weekday + month/year */
+.session-date-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.session-date-day {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  min-width: 36px;
+  text-align: right;
+}
+
+.session-date-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.session-date-weekday {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.session-date-monthyear {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Row action buttons (Edit / Delete / Copy / Notify...) */
+.session-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px; /* Small gap between buttons */
+}
+
+.session-row-action-button {
+  background-color: #ffffff; /* White button background */
+  border: 1px solid #cccccc;
+  color: #333333;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border-radius: 3px;
+  cursor: pointer;
+  line-height: 1.2;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.session-row-action-button:hover {
+  background-color: #f5f5f5;
+  border-color: #999999;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Agenda View - Pagination */
+.session-log-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px 0;
+}
+
+.pagination-button {
+  background-color: #01665e;
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  font-size: 0.9rem;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #003C30;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-page-number {
+  padding: 6px 12px;
+  background-color: #01665e;
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: center;
+}
+
+.pagination-items-per-page {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-left: 10px;
+}
+
+.pagination-items-text {
+  font-size: 0.9rem;
+  color: #666;
+  margin-left: 5px;
+}
+
+/* Calendar View - Controls */
+.calendar-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+
+.calendar-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-controls-right {
+  display: flex;
+  gap: 5px;
+}
+
+.calendar-button {
+  background-color: #01665e;
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  font-size: 0.9rem;
+}
+
+.calendar-button:hover {
+  background-color: #003C30;
+}
+
+.calendar-nav-button {
+  background-color: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+  font-size: 1rem;
+}
+
+.calendar-nav-button:hover {
+  background-color: #f5f5f5;
+  border-color: #01665e;
+}
+
+.calendar-date-display {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  margin-left: 10px;
+}
+
+.calendar-view-button {
+  background-color: transparent;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.calendar-view-button:hover {
+  background-color: #f5f5f5;
+}
+
+.calendar-view-button.active {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+/* Calendar Grid - Month View */
+.calendar-grid.month-view {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background-color: #f4f4f4;
+  border-bottom: 2px solid #ddd;
+}
+
+.calendar-weekday {
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  border-right: 1px solid #ddd;
+}
+
+.calendar-weekday:last-child {
+  border-right: none;
+}
+
+.calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-day {
+  min-height: 100px;
+  padding: 8px;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+  background-color: #fff;
+}
+
+.calendar-day:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-day.other-month {
+  background-color: #f9f9f9;
+  color: #999;
+}
+
+.calendar-day.today {
+  background-color: #e3f2fd;
+}
+
+.calendar-day-number {
+  font-size: 0.9rem;
+  font-weight: 500;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* Calendar Grid - Week View */
+.calendar-grid.week-view {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.calendar-week-header {
+  display: grid;
+  grid-template-columns: 120px repeat(7, 1fr);
+  background-color: #f4f4f4;
+  border-bottom: 2px solid #ddd;
+}
+
+.calendar-time-column {
+  padding: 12px;
+  border-right: 1px solid #ddd;
+}
+
+.calendar-day-header {
+  padding: 12px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+}
+
+.calendar-day-header:last-child {
+  border-right: none;
+}
+
+.day-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.day-date {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.calendar-week-body {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.calendar-time-slots {
+  border-right: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
+.calendar-time-slot {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.85rem;
+  color: #666;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.calendar-week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-week-day {
+  border-right: 1px solid #ddd;
+}
+
+.calendar-week-day:last-child {
+  border-right: none;
+}
+
+.calendar-week-day.today {
+  background-color: #e3f2fd;
+}
+
+.calendar-time-cell {
+  min-height: 50px;
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #e0e0e0;
+  background-color: #fff;
+}
+
+.show-full-day-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.show-full-day-button:hover {
+  background-color: #f5f5f5;
+  border-color: #01665e;
+}
+
+/* Document Upload Section */
+.document-upload-controls {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.display-removed-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.display-removed-checkbox input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.document-upload-table-container {
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.document-upload-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+.document-upload-table th {
+  padding: 12px;
+  text-align: left;
+  background-color: #f4f4f4;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+  border-right: 1px solid #ddd;
+  position: relative;
+}
+
+.document-upload-table th:last-child {
+  border-right: none;
+}
+
+.document-upload-table th .sort-indicator {
+  margin-left: 5px;
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.document-upload-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+}
+
+.document-upload-table td:last-child {
+  border-right: none;
+}
+
+.document-upload-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.no-documents-cell {
+  text-align: center;
+  padding: 40px !important;
+  color: #777;
+}
+
+.no-items-text {
+  margin-right: 10px;
+}
+
+.refresh-icon {
+  font-size: 1rem;
+}
+
+/* Document Upload Pagination */
+.document-upload-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 10px 0;
+}
+
+/* Select Files Button */
+.select-files-button {
+  padding: 10px 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background-color: #01665e;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+.select-files-button:hover {
+  background-color: #003C30;
+}
+
+/* File Size Info */
+.file-size-info {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 10px 0;
+}
+
+.file-size-info strong {
+  color: #333;
+}
+
+/* Upload Instructions */
+.upload-instructions {
+  margin: 20px auto;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-left: 3px solid #01665e;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+
+.upload-instruction-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  color: #333;
+  width: 100%;
+}
+
+.upload-instruction-item:last-child {
+  margin-bottom: 0;
+}
+
+.instruction-number {
+  font-weight: bold;
+  color: #01665e;
+  margin-right: 8px;
+  min-width: 20px;
+}
+
+.instruction-text {
+  text-align: left;
+}
+
+/* Storage Warning */
+.storage-warning {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #fff3cd;
+  border-left: 3px solid #ffc107;
+  border-radius: 4px;
+}
+

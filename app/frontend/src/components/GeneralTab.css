@@ -1,0 +1,219 @@
+/* Container */
+.general-tab-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* Header */
+.general-tab-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.general-tab-header h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+/* Form */
+.general-tab-form {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+/* Section */
+.gt-section {
+  margin-bottom: 30px;
+}
+
+.gt-section h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+
+/* Table Styling */
+.gt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.gt-table th,
+.gt-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.gt-table th {
+  background-color: #f4f4f4;
+}
+
+/* Table Action Buttons */
+.gt-edit-button,
+.gt-refer-button,
+.gt-na-button,
+.gt-view-button,
+.gt-remove-button {
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  margin-right: 5px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.gt-edit-button:hover,
+.gt-refer-button:hover,
+.gt-na-button:hover,
+.gt-view-button:hover,
+.gt-remove-button:hover {
+  background-color: #0056b3;
+}
+
+/* Form Rows */
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.form-row label {
+  width: 300px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.form-row input[type="text"],
+.form-row input[type="date"],
+.form-row select {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Add Button */
+.add-button {
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-left: 10px;
+  transition: background-color 0.3s;
+}
+
+.add-button:hover {
+  background-color: #0056b3;
+}
+
+/* Checkboxes & Radios */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.checkbox-group-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.checkbox-group-row label {
+  width: 300px;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.checkbox-group {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* Additional Buttons (Add new record) */
+.session-log-button {
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.session-log-button:hover {
+  background-color: #0056b3;
+}
+
+/* Insurance Section */
+.insurance-container {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 20px;
+}
+
+.insurance-column {
+  flex: 1;
+}
+
+.insurance-column h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+/* Save/Cancel Buttons */
+.gt-form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.save-button,
+.cancel-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+  transition: background-color 0.3s;
+}
+
+.save-button {
+  background-color: #007bff;
+}
+
+.cancel-button {
+  background-color: #dc3545;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+}
