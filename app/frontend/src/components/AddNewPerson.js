@@ -901,36 +901,39 @@ const AddNewPerson = () => {
     setError(null);
     setSuccess(null);
 
-    // Check for duplicate names before creating
+    // Check for duplicate (same name + same date of birth) before creating; same name but different DOB is allowed
     if (personalProfileData.firstName && personalProfileData.lastName) {
       try {
         const duplicatePeople = await peopleApi.searchByName(
           personalProfileData.firstName.trim(),
           personalProfileData.lastName.trim()
         );
-        
-        // Filter for exact matches (case-insensitive)
+        const normDob = (d) => {
+          if (!d) return '';
+          const s = typeof d === 'string' ? d : (d.toISOString ? d.toISOString() : String(d));
+          return s.slice(0, 10);
+        };
+        const inputDob = normDob(personalProfileData.dateOfBirth);
         const exactMatches = duplicatePeople.filter(person => {
           const personFirstName = (person.first_name || '').trim().toLowerCase();
           const personLastName = (person.last_name || '').trim().toLowerCase();
           const inputFirstName = personalProfileData.firstName.trim().toLowerCase();
           const inputLastName = personalProfileData.lastName.trim().toLowerCase();
-          return personFirstName === inputFirstName && personLastName === inputLastName;
+          const nameMatch = personFirstName === inputFirstName && personLastName === inputLastName;
+          const dobMatch = normDob(person.date_of_birth) === inputDob;
+          return nameMatch && dobMatch;
         });
-        
         if (exactMatches.length > 0) {
-          // Found duplicate names - show warning and open lookup modal
           setShowDuplicateWarning(true);
           setDuplicateCheckSearchTerm(personalProfileData.lastName.trim());
           setDuplicateCheckFirstName(personalProfileData.firstName.trim());
           setLookupModalOpen(true);
-          const errorMessage = `Duplicate names found: "${personalProfileData.firstName} ${personalProfileData.lastName}" already exists in the database. Please review the duplicate names before creating a new person.`;
+          const errorMessage = `A person with the same name and date of birth already exists: "${personalProfileData.firstName} ${personalProfileData.lastName}" (DOB ${inputDob || 'N/A'}). Please review before creating.`;
           setError(errorMessage);
           return;
         }
       } catch (err) {
-        // For errors (e.g., network errors), log but continue
-        console.warn('Error checking for duplicate names:', err);
+        console.warn('Error checking for duplicate:', err);
       }
     }
 

@@ -2585,39 +2585,45 @@ const NewCase = () => {
       throw new Error('Last name and first name are required');
     }
     
-    // Check for duplicate names before creating
+    // Check for duplicate by name + date of birth before creating
     try {
       const duplicatePeople = await peopleApi.searchByName(
         formData.firstName.trim(),
         formData.lastName.trim()
       );
-      
-      // Filter for exact matches (case-insensitive)
+      const inputDobNorm = formData.dateOfBirth
+        ? new Date(formData.dateOfBirth).toISOString().split('T')[0]
+        : null;
+      const normDob = (d) => {
+        if (!d) return null;
+        const s = typeof d === 'string' ? d : (d instanceof Date ? d.toISOString() : String(d));
+        const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+        return m ? m[1] : null;
+      };
       const exactMatches = duplicatePeople.filter(person => {
         const personFirstName = (person.first_name || '').trim().toLowerCase();
         const personLastName = (person.last_name || '').trim().toLowerCase();
         const inputFirstName = formData.firstName.trim().toLowerCase();
         const inputLastName = formData.lastName.trim().toLowerCase();
-        return personFirstName === inputFirstName && personLastName === inputLastName;
+        if (personFirstName !== inputFirstName || personLastName !== inputLastName) return false;
+        const personDob = normDob(person.date_of_birth);
+        if (inputDobNorm !== personDob) return false;
+        return true;
       });
-      
       if (exactMatches.length > 0) {
-        // Found duplicate names - show warning and open lookup modal
         setShowDuplicateWarning(true);
         setDuplicateCheckSearchTerm(formData.lastName.trim());
         setDuplicateCheckFirstName(formData.firstName.trim());
         setLookupModalOpen(true);
-        const errorMessage = `Duplicate names found: "${formData.firstName} ${formData.lastName}" already exists in the database. Please review the duplicate names before creating a new person.`;
+        const errorMessage = 'A person with the same name and date of birth already exists.';
         setError(errorMessage);
         throw new Error(errorMessage);
       }
     } catch (err) {
-      // If it's our duplicate error, re-throw it
-      if (err.message.includes('Duplicate names found')) {
+      if (err.message && err.message.includes('same name and date of birth')) {
         throw err;
       }
-      // For other errors (e.g., network errors), log but continue
-      console.warn('Error checking for duplicate names:', err);
+      console.warn('Error checking for duplicate name+DOB:', err);
     }
     
     // Helper function to truncate strings to specified length

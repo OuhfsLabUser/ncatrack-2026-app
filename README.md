@@ -170,6 +170,10 @@ The React app will run at http://localhost:3000.
 - **API routes**: `app/api/routes`
 - **Database schema**: `app/api/prisma/schema.prisma`
 - **Frontend entry**: `app/frontend/src/App.js`
+- **Frontend package.json**: `app/frontend/package.json` — always run `npm install` and `npm start` from `app/frontend` (e.g. `cd app/frontend` then `npm start`) so all components load correctly.
+- **Default Case**: The app treats the first case returned by the API as the default selected case (see `app/frontend/src/context/CaseContext.js`). To have cases (including a “default” one) in the list, run the database wizard to create and seed the database: `python app/wizard.py` from the project root.
+- **Base Case**: The wizard also creates a “base case” (case number `BASE-001`) with two victims who share the same profile except names: **Jackson Barns** (primary) and **Taniel Lewis** (secondary). Script: `app/database/populate_base_case.py`; it runs automatically during **Complete Install** or **Load Predefined Scenario**.
+- **Restoring from Local History**: If you need to restore files to a previous state (e.g. before a reset), see **RESTORE_FROM_LOCAL_HISTORY.md** for a step-by-step guide using Cursor/VS Code Timeline and a CSV export / npm start checklist.
 
 ## Troubleshooting
 

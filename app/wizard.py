@@ -292,6 +292,15 @@ def load_scenario(scenario_name):
             except Exception as e:
                 print(f"[yellow]Warning: Error populating Lewis persons: {e}[/yellow]")
                 # Don't fail the scenario load if Lewis persons fail
+
+            # Create base case with two victims (Jackson Barns + Taniel Lewis)
+            print("[yellow]Creating base case (two victims: Jackson Barns & Taniel Lewis)...[/yellow]")
+            try:
+                from database.populate_base_case import main as populate_base_case
+                populate_base_case()
+                print("[green]Base case created successfully.[/green]")
+            except Exception as e:
+                print(f"[yellow]Warning: Error creating base case: {e}[/yellow]")
         
         # Fix database permissions for Prisma (same as generate_and_populate_data)
         fix_database_permissions()
@@ -417,7 +426,15 @@ def generate_and_populate_data():
         print("[green]Lewis persons populated successfully.[/green]")
     except Exception as e:
         print(f"[yellow]Warning: Error populating Lewis persons: {e}[/yellow]")
-        # Don't fail if Lewis persons fail
+
+    # Create base case with two victims (Jackson Barns + Taniel Lewis)
+    print("[yellow]Creating base case (two victims: Jackson Barns & Taniel Lewis)...[/yellow]")
+    try:
+        from database.populate_base_case import main as populate_base_case
+        populate_base_case()
+        print("[green]Base case created successfully.[/green]")
+    except Exception as e:
+        print(f"[yellow]Warning: Error creating base case: {e}[/yellow]")
     
     # Fix database permissions for Prisma
     fix_database_permissions()
