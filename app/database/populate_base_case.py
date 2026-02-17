@@ -39,6 +39,70 @@ TANIEL_EDUCATION = "Rockwood Elementary School"
 TANIEL_CUSTODY = True  # OKDHS protective custody (emergency)
 TANIEL_CUSTODY_STATUS = "OKDHS protective custody (emergency)"
 
+# Contact / address for Taniel Lewis (so selecting her in New Case auto-fills address)
+TANIEL_ADDRESS_LINE_1 = "123 Oak Street"
+TANIEL_ADDRESS_LINE_2 = "Apt 4B"
+TANIEL_CITY = "Oklahoma City"
+TANIEL_STATE_ABBR = "OK"
+TANIEL_ZIP = "73102"
+TANIEL_COUNTY = "Oklahoma"
+TANIEL_REGION = ""
+TANIEL_HOME_PHONE = "(405) 555-0100"
+TANIEL_CELL_PHONE = "(405) 555-0101"
+TANIEL_EMAIL = "taniel.lewis@example.com"
+
+
+def _update_taniel_contact(cur, case_id):
+    """Update case_person contact/address for Taniel Lewis in the given base case (for existing DBs)."""
+    cur.execute(
+        """
+        SELECT cp.person_id FROM case_person cp
+        JOIN person p ON p.person_id = cp.person_id
+        WHERE cp.case_id = %s AND p.first_name = %s AND p.last_name = %s
+        """,
+        (case_id, "Taniel", "Lewis")
+    )
+    row = cur.fetchone()
+    if not row:
+        print("[yellow]Taniel Lewis not found in base case. Skip contact update.[/yellow]")
+        return
+    person_id = row[0]
+    cur.execute(
+        """
+        UPDATE case_person SET
+            address_line_1 = %s,
+            address_line_2 = %s,
+            city = %s,
+            state_abbr = %s,
+            zip = %s,
+            county = %s,
+            region = NULLIF(%s, ''),
+            home_phone_number = %s,
+            cell_phone_number = %s,
+            email_address = %s
+        WHERE person_id = %s AND case_id = %s
+        """,
+        (
+            TANIEL_ADDRESS_LINE_1[:200] if TANIEL_ADDRESS_LINE_1 else None,
+            TANIEL_ADDRESS_LINE_2[:200] if TANIEL_ADDRESS_LINE_2 else None,
+            TANIEL_CITY[:50] if TANIEL_CITY else None,
+            TANIEL_STATE_ABBR[:20] if TANIEL_STATE_ABBR else None,
+            TANIEL_ZIP[:20] if TANIEL_ZIP else None,
+            TANIEL_COUNTY[:20] if TANIEL_COUNTY else None,
+            TANIEL_REGION[:20] if TANIEL_REGION else None,
+            TANIEL_HOME_PHONE[:200] if TANIEL_HOME_PHONE else None,
+            TANIEL_CELL_PHONE[:200] if TANIEL_CELL_PHONE else None,
+            TANIEL_EMAIL[:200] if TANIEL_EMAIL else None,
+            person_id,
+            case_id,
+        )
+    )
+    if cur.rowcount:
+        print("[green]Updated Taniel Lewis contact/address in base case.[/green]")
+    else:
+        print("[yellow]No rows updated for Taniel Lewis.[/yellow]")
+
+
 def create_base_case():
     """Create one base case with two persons: Jackson Barns (primary) and Taniel Lewis (secondary)."""
     try:
@@ -51,13 +115,16 @@ def create_base_case():
         with psycopg2.connect(**config) as conn:
             conn.autocommit = True
             with conn.cursor() as cur:
-                # Skip if base case already exists
+                # If base case already exists, update Taniel Lewis contact info and exit
                 cur.execute(
                     "SELECT case_id FROM cac_case WHERE case_number = %s",
                     (BASE_CASE_NUMBER,)
                 )
-                if cur.fetchone():
-                    print(f"[yellow]Base case '{BASE_CASE_NUMBER}' already exists. Skipping.[/yellow]")
+                row = cur.fetchone()
+                if row:
+                    case_id_existing = row[0]
+                    print(f"[yellow]Base case '{BASE_CASE_NUMBER}' already exists. Updating Taniel Lewis contact info...[/yellow]")
+                    _update_taniel_contact(cur, case_id_existing)
                     return True
 
                 # Next case_id
@@ -114,9 +181,11 @@ def create_base_case():
                 cur.execute("""
                     INSERT INTO case_person (
                         person_id, case_id, cac_id, role_id, victim_status,
-                        age, age_unit, school_or_employer, custody, case_person_custom_field_7
+                        age, age_unit, school_or_employer, custody, case_person_custom_field_7,
+                        address_line_1, address_line_2, city, state_abbr, zip, county, region,
+                        home_phone_number, cell_phone_number, email_address
                     )
-                    VALUES (%s, %s, %s, 1, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, 1, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     secondary_id,
                     case_id,
@@ -127,6 +196,16 @@ def create_base_case():
                     TANIEL_EDUCATION[:200] if TANIEL_EDUCATION else None,
                     TANIEL_CUSTODY,
                     TANIEL_CUSTODY_STATUS,
+                    TANIEL_ADDRESS_LINE_1[:200] if TANIEL_ADDRESS_LINE_1 else None,
+                    TANIEL_ADDRESS_LINE_2[:200] if TANIEL_ADDRESS_LINE_2 else None,
+                    TANIEL_CITY[:50] if TANIEL_CITY else None,
+                    TANIEL_STATE_ABBR[:20] if TANIEL_STATE_ABBR else None,
+                    TANIEL_ZIP[:20] if TANIEL_ZIP else None,
+                    TANIEL_COUNTY[:20] if TANIEL_COUNTY else None,
+                    TANIEL_REGION[:20] if TANIEL_REGION else None,
+                    TANIEL_HOME_PHONE[:200] if TANIEL_HOME_PHONE else None,
+                    TANIEL_CELL_PHONE[:200] if TANIEL_CELL_PHONE else None,
+                    TANIEL_EMAIL[:200] if TANIEL_EMAIL else None,
                 ))
                 print("[green]Associated both victims with base case (Primary & Secondary).[/green]")
 
