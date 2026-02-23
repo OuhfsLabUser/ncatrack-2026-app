@@ -63,7 +63,10 @@ const AppLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isTracking, setIsTracking] = useState(false);
+  // 从 localStorage 恢复录制状态，使刷新后录制会话不被中断
+  const [isTracking, setIsTracking] = useState(() =>
+    typeof window !== 'undefined' && localStorage.getItem('aoi_is_recording') === 'true'
+  );
   const [scenarioMenuAnchor, setScenarioMenuAnchor] = useState(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [saveScenarioDialogOpen, setSaveScenarioDialogOpen] = useState(false);

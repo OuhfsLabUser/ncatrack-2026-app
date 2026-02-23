@@ -19,11 +19,25 @@ export default function AOITracker({ isTracking = false }) {
   const inputSequences = useRef(new Map()); // Map<fieldId, string[]>
 
   useEffect(() => {
-    // Generate new session ID when tracking starts
+    // 持久化/恢复录制会话：仅由 Start/End 控制，刷新后恢复同一 sessionId
     if (isTracking && sessionId.current === null) {
-      sessionId.current = uuidv4();
+      const storedRecording = typeof window !== 'undefined' && localStorage.getItem('aoi_is_recording') === 'true';
+      const storedSessionId = typeof window !== 'undefined' ? localStorage.getItem('aoi_session_id') : null;
+      if (storedRecording && storedSessionId) {
+        // 恢复已有会话，不发送新的 session_start
+        sessionId.current = storedSessionId;
+        firstEventTime.current = Date.now(); // 避免下方 session_start 逻辑再次触发
+      } else {
+        // 新会话：生成 sessionId 并写入 localStorage
+        sessionId.current = uuidv4();
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('aoi_session_id', sessionId.current);
+          localStorage.setItem('aoi_is_recording', 'true');
+        }
+      }
     }
     window.AOI_SESSION_ID = sessionId.current;
+    window.AOI_CURRENT_SESSION_ID = sessionId.current;
 
     const clamp = (v, max) => Math.min(Math.max(Math.round(v), 0), max);
     
@@ -1321,9 +1335,13 @@ export default function AOITracker({ isTracking = false }) {
         });
       }
       
-      // Reset firstEventTime and session ID when tracking stops
+      // Reset firstEventTime and session ID when tracking stops; 清除持久化，仅由 End 结束会话
       firstEventTime.current = null;
-      sessionId.current = null; // Reset session ID so a new one is generated on next start
+      sessionId.current = null;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('aoi_is_recording');
+        localStorage.removeItem('aoi_session_id');
+      }
     }
 
     // teardown
