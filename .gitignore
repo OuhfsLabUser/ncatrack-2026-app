@@ -165,3 +165,4 @@ yarn-error.log*
 .history/
 
 *.csv
+app/output/
