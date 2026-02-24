@@ -15,7 +15,16 @@ router.get('/', async (req, res, next) => {
         cac_agency_cac_case_va_agency_idTocac_agency: true
       }
     });
-    res.json(cases);
+
+    // Normalize date fields as YYYY-MM-DD strings so the frontend does not need to handle timezones
+    const serialized = cases.map(c => ({
+      ...c,
+      cac_received_date: c.cac_received_date ? c.cac_received_date.toISOString().slice(0, 10) : null,
+      case_closed_date: c.case_closed_date ? c.case_closed_date.toISOString().slice(0, 10) : null,
+      created_date: c.created_date ? c.created_date.toISOString().slice(0, 10) : null
+    }));
+
+    res.json(serialized);
   } catch (error) {
     next(error);
   }
@@ -176,7 +185,15 @@ router.get('/:id', async (req, res, next) => {
       return res.status(404).json({ message: 'Case not found' });
     }
 
-    res.json(caseData);
+    // Serialize top-level date fields as YYYY-MM-DD strings
+    const serializedCase = {
+      ...caseData,
+      cac_received_date: caseData.cac_received_date ? caseData.cac_received_date.toISOString().slice(0, 10) : null,
+      case_closed_date: caseData.case_closed_date ? caseData.case_closed_date.toISOString().slice(0, 10) : null,
+      created_date: caseData.created_date ? caseData.created_date.toISOString().slice(0, 10) : null
+    };
+
+    res.json(serializedCase);
   } catch (error) {
     console.error('Error fetching case by ID:', error);
     next(error);

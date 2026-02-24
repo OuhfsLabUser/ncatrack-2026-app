@@ -2249,10 +2249,24 @@ const NewCase = () => {
     
     const formatDateForAPI = (dateStr) => {
       if (!dateStr) return null;
+
+      if (typeof dateStr === 'string') {
+        const trimmed = dateStr.trim();
+
+        // 已是 YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+          return trimmed;
+        }
+
+        // ISO 或其他带时间的格式：取前 10 位
+        if (trimmed.length >= 10 && trimmed[4] === '-' && trimmed[7] === '-') {
+          return trimmed.slice(0, 10);
+        }
+      }
+
       try {
-        // Use Dallas timezone formatting
         const formatted = formatDateForBackend(dateStr);
-        return formatted ? formatted.split('T')[0] : null;
+        return formatted;
       } catch {
         return null;
       }
@@ -2591,8 +2605,9 @@ const NewCase = () => {
         formData.firstName.trim(),
         formData.lastName.trim()
       );
+      // 直接用表单中的 YYYY-MM-DD 字符串，避免通过 Date 产生时区偏移
       const inputDobNorm = formData.dateOfBirth
-        ? new Date(formData.dateOfBirth).toISOString().split('T')[0]
+        ? formData.dateOfBirth
         : null;
       const normDob = (d) => {
         if (!d) return null;
@@ -2711,16 +2726,25 @@ const NewCase = () => {
       throw new Error('Date received and reason for referral are required');
     }
     
-    // Format date for API in ISO-8601 DateTime format using Dallas timezone
+    // Format date for API: 返回无时区的 YYYY-MM-DD 字符串
     const formatDateISO = (dateStr) => {
       if (!dateStr) return null;
-      
-      // For strings that already include time component
-      if (dateStr.includes('T')) {
-        return dateStr;
+
+      if (typeof dateStr === 'string') {
+        const trimmed = dateStr.trim();
+
+        // 已经是 YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+          return trimmed;
+        }
+
+        // 带时间的 ISO 字符串：直接取前 10 位作为日期部分
+        if (trimmed.length >= 10 && trimmed[4] === '-' && trimmed[7] === '-') {
+          return trimmed.slice(0, 10);
+        }
       }
-      
-      // Use Dallas timezone formatting
+
+      // 兜底走公共工具，也只会返回 YYYY-MM-DD
       return formatDateForBackend(dateStr);
     };
     
@@ -2800,15 +2824,25 @@ const NewCase = () => {
         return stateMap[stateName] || null;
       };
       
-      // Helper function to format date for API
+      // Helper function to format date for API (return YYYY-MM-DD, avoid Date-based timezone shifts)
       const formatDateForAPI = (dateStr) => {
         if (!dateStr) return null;
-        try {
-          const date = new Date(dateStr);
-          return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
-        } catch {
-          return null;
+
+        if (typeof dateStr === 'string') {
+          const trimmed = dateStr.trim();
+
+          // 已是 YYYY-MM-DD
+          if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+          }
+
+          // ISO 或其他带时间的格式：取前 10 位
+          if (trimmed.length >= 10 && trimmed[4] === '-' && trimmed[7] === '-') {
+            return trimmed.slice(0, 10);
+          }
         }
+
+        return null;
       };
       
       // Ensure age is correctly parsed as integer
@@ -2933,15 +2967,25 @@ const NewCase = () => {
         return stateMap[stateName] || null;
       };
       
-      // Helper function to format date for API
+      // Helper function to format date for API（返回 YYYY-MM-DD，避免 Date 解析时区偏移）
       const formatDateForAPI = (dateStr) => {
         if (!dateStr) return null;
-        try {
-          const date = new Date(dateStr);
-          return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
-        } catch {
-          return null;
+
+        if (typeof dateStr === 'string') {
+          const trimmed = dateStr.trim();
+
+          // 已是 YYYY-MM-DD
+          if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+          }
+
+          // ISO 或其他带时间的格式：取前 10 位
+          if (trimmed.length >= 10 && trimmed[4] === '-' && trimmed[7] === '-') {
+            return trimmed.slice(0, 10);
+          }
         }
+
+        return null;
       };
       
       // Prepare contact information data with all fields from Prisma schema

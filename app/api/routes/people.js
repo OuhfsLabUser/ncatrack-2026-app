@@ -68,6 +68,28 @@ const normalizeDates = (data) => {
   return data;
 };
 
+// Normalize Date / string values into plain YYYY-MM-DD (first 10 chars) to keep frontend timezone-agnostic
+const toPlainDateString = (value) => {
+  if (!value) return null;
+
+  // Already a string
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    const m = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (m) return m[1];
+
+    const d = new Date(trimmed);
+    return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+  }
+
+  // JS Date object
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? null : value.toISOString().slice(0, 10);
+  }
+
+  return null;
+};
+
 /**
  * @route GET /api/people
  * @desc Get all people
@@ -84,7 +106,16 @@ router.get('/', async (req, res, next) => {
         last_name: true
       }
     });
-    res.json(people);
+
+    // Ensure dates in the list are plain YYYY-MM-DD strings
+    const serialized = people.map(p => ({
+      ...p,
+      date_of_birth: toPlainDateString(p.date_of_birth),
+      date_of_death: toPlainDateString(p.date_of_death),
+      date_added: toPlainDateString(p.date_added)
+    }));
+
+    res.json(serialized);
   } catch (error) {
     next(error);
   }
@@ -193,15 +224,30 @@ router.get('/search-by-firstname/:firstName', async (req, res, next) => {
         });
         
         // Add case information to the person object
-        return {
+        // 序列化日期字段为 YYYY-MM-DD
+        const serializedPerson = {
           ...person,
+          date_of_birth: toPlainDateString(person.date_of_birth),
+          date_of_death: toPlainDateString(person.date_of_death),
+          date_added: toPlainDateString(person.date_added)
+        };
+
+        return {
+          ...serializedPerson,
           case_person: casePerson
         };
       } catch (err) {
         console.error(`Error fetching case info for person ID ${person.person_id}:`, err);
         // Return the person without case information
-        return {
+        const serializedPerson = {
           ...person,
+          date_of_birth: toPlainDateString(person.date_of_birth),
+          date_of_death: toPlainDateString(person.date_of_death),
+          date_added: toPlainDateString(person.date_added)
+        };
+
+        return {
+          ...serializedPerson,
           case_person: []
         };
       }
@@ -387,7 +433,7 @@ router.get('/case/:caseId', async (req, res, next) => {
         last_name: p.last_name || null,
         middle_name: p.middle_name || null,
         ssn: p.ssn || null,
-        date_of_birth: p.date_of_birth,
+        date_of_birth: toPlainDateString(p.date_of_birth),
         // Also include combined name for backward compatibility
         name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'N/A',
         // Use case_person age and age_unit instead of calculated age from date_of_birth
@@ -405,7 +451,7 @@ router.get('/case/:caseId', async (req, res, next) => {
           last_name: p.last_name || null,
           middle_name: p.middle_name || null,
           ssn: p.ssn || null,
-          date_of_birth: p.date_of_birth
+          date_of_birth: toPlainDateString(p.date_of_birth)
         }
       };
     });
@@ -1108,7 +1154,10 @@ router.get('/:id', async (req, res, next) => {
       ...person,
       nick_name,
       ssn,
-      // You can add additional computed fields here if needed
+      // Normalize date fields to YYYY-MM-DD strings to avoid frontend timezone conversions
+      date_of_birth: toPlainDateString(person.date_of_birth),
+      date_of_death: toPlainDateString(person.date_of_death),
+      date_added: toPlainDateString(person.date_added)
     };
     
     res.json(enhancedPerson);

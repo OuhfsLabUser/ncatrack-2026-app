@@ -948,7 +948,7 @@ const AddNewPerson = () => {
 
       // Map personal profile data to API format for creating new person
       const ssnForDB = personalProfileData.ssn ? unformatSSN(personalProfileData.ssn) : null;
-      
+
       const personData = {
         cac_id: caseData.cac_id,
         first_name: personalProfileData.firstName || null,
@@ -957,9 +957,10 @@ const AddNewPerson = () => {
         suffix: personalProfileData.suffix || null,
         nick_name: personalProfileData.nickName || null,
         ssn: ssnForDB,
-        date_of_birth: personalProfileData.dateOfBirth ? new Date(personalProfileData.dateOfBirth) : null,
-        date_of_death: personalProfileData.dateOfDeath ? new Date(personalProfileData.dateOfDeath) : null,
-        date_added: personalProfileData.dateAdded ? new Date(personalProfileData.dateAdded) : null,
+        // Always send YYYY-MM-DD strings to backend to avoid timezone shifts
+        date_of_birth: personalProfileData.dateOfBirth || null,
+        date_of_death: personalProfileData.dateOfDeath || null,
+        date_added: personalProfileData.dateAdded || null,
         gender: personalProfileData.biologicalSex === 'Male' ? 'M' :
                 personalProfileData.biologicalSex === 'Female' ? 'F' :
                 personalProfileData.biologicalSex === 'Intersex' ? 'I' :
@@ -1047,8 +1048,9 @@ const AddNewPerson = () => {
         zip: zip,
         county: county,
         region: region,
-        start_date: caseSpecificData.startDate ? new Date(caseSpecificData.startDate) : null,
-        end_date: caseSpecificData.endDate ? new Date(caseSpecificData.endDate) : null,
+        // Contact dates: also use timezone-free YYYY-MM-DD strings
+        start_date: caseSpecificData.startDate || null,
+        end_date: caseSpecificData.endDate || null,
         home_phone_number: caseSpecificData.homePhone || null,
         cell_phone_number: caseSpecificData.cellPhone || null,
         work_phone_number: caseSpecificData.workPhone || null,

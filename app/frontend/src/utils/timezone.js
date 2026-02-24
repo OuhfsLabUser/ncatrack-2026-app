@@ -21,24 +21,37 @@ export const getDallasDate = () => {
  */
 export const formatDateForInput = (date) => {
   if (!date) return '';
-  
+
   try {
+    // If it's already a plain YYYY-MM-DD / ISO-like string, just normalize/return without timezone conversion
+    if (typeof date === 'string') {
+      const trimmed = date.trim();
+
+      // Handle ISO-like strings: just take the first 10 characters
+      if (trimmed.length >= 10 && trimmed[4] === '-' && trimmed[7] === '-') {
+        return trimmed.slice(0, 10);
+      }
+
+      // Fallback: avoid letting the browser parse local time; return empty string to avoid wrong dates
+      return '';
+    }
+
+    // 对真正的 Date 对象，仍然按 Dallas 时区取年月日
     const dateObj = date instanceof Date ? date : new Date(date);
     if (isNaN(dateObj.getTime())) return '';
-    
-    // Get date components in Dallas timezone
+
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: DALLAS_TIMEZONE,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     });
-    
+
     const parts = formatter.formatToParts(dateObj);
     const year = parts.find(p => p.type === 'year').value;
     const month = parts.find(p => p.type === 'month').value;
     const day = parts.find(p => p.type === 'day').value;
-    
+
     return `${year}-${month}-${day}`;
   } catch (error) {
     console.error('Error formatting date for input:', error);
@@ -90,45 +103,49 @@ export const parseDallasDate = (dateStr) => {
 };
 
 /**
- * Format date to ISO string for backend (preserving Dallas timezone date)
+ * Format date for backend as timezone-free YYYY-MM-DD 字符串
  * @param {Date|string} date - Date to format
- * @returns {string} ISO string or null
+ * @returns {string|null} YYYY-MM-DD or null
  */
 export const formatDateForBackend = (date) => {
   if (!date) return null;
-  
+
   try {
-    let dateObj;
+    // 字符串优先：保证不带任何时区信息
     if (typeof date === 'string') {
-      // If it's a YYYY-MM-DD string, parse it
-      if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        const [year, month, day] = date.split('-').map(Number);
-        // Create at noon UTC to avoid date boundary issues
-        // The date represents the date in Dallas timezone
-        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T12:00:00.000Z`;
+      const trimmed = date.trim();
+
+      // 已经是 YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return trimmed;
       }
-      dateObj = new Date(date);
-    } else {
-      dateObj = date;
+
+      // ISO / 其他带时间的格式：取前 10 位
+      if (trimmed.length >= 10 && trimmed[4] === '-' && trimmed[7] === '-') {
+        return trimmed.slice(0, 10);
+      }
+
+      // 其他字符串不给浏览器解析，避免时区偏移
+      return null;
     }
-    
-    if (!dateObj || isNaN(dateObj.getTime())) return null;
-    
-    // Get date components in Dallas timezone
+
+    // Date 对象：按 Dallas 时区取年月日，然后输出 YYYY-MM-DD（无时间、无时区）
+    const dateObj = date instanceof Date ? date : new Date(date);
+    if (isNaN(dateObj.getTime())) return null;
+
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: DALLAS_TIMEZONE,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     });
-    
+
     const parts = formatter.formatToParts(dateObj);
     const year = parts.find(p => p.type === 'year').value;
     const month = parts.find(p => p.type === 'month').value;
     const day = parts.find(p => p.type === 'day').value;
-    
-    // Return ISO string at noon UTC to avoid timezone conversion issues
-    return `${year}-${month}-${day}T12:00:00.000Z`;
+
+    return `${year}-${month}-${day}`;
   } catch (error) {
     console.error('Error formatting date for backend:', error);
     return null;
