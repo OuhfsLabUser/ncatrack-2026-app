@@ -293,14 +293,14 @@ def load_scenario(scenario_name):
                 print(f"[yellow]Warning: Error populating Lewis persons: {e}[/yellow]")
                 # Don't fail the scenario load if Lewis persons fail
 
-            # Create base case with two victims (Jackson Barns + Taniel Lewis)
-            print("[yellow]Creating base case (two victims: Jackson Barns & Taniel Lewis)...[/yellow]")
+            # Create Care 1 base data (2021 Tulsa historical case + interference records)
+            print("[yellow]Creating Care 1 base data (2021 Tulsa historical case + interference records)...[/yellow]")
             try:
                 from database.populate_base_case import main as populate_base_case
                 populate_base_case()
-                print("[green]Base case created successfully.[/green]")
+                print("[green]Care 1 base data created successfully.[/green]")
             except Exception as e:
-                print(f"[yellow]Warning: Error creating base case: {e}[/yellow]")
+                print(f"[yellow]Warning: Error creating Care 1 base data: {e}[/yellow]")
         
         # Fix database permissions for Prisma (same as generate_and_populate_data)
         fix_database_permissions()
@@ -427,14 +427,14 @@ def generate_and_populate_data():
     except Exception as e:
         print(f"[yellow]Warning: Error populating Lewis persons: {e}[/yellow]")
 
-    # Create base case with two victims (Jackson Barns + Taniel Lewis)
-    print("[yellow]Creating base case (two victims: Jackson Barns & Taniel Lewis)...[/yellow]")
+    # Create Care 1 base data (2021 Tulsa historical case + interference records)
+    print("[yellow]Creating Care 1 base data (2021 Tulsa historical case + interference records)...[/yellow]")
     try:
         from database.populate_base_case import main as populate_base_case
         populate_base_case()
-        print("[green]Base case created successfully.[/green]")
+        print("[green]Care 1 base data created successfully.[/green]")
     except Exception as e:
-        print(f"[yellow]Warning: Error creating base case: {e}[/yellow]")
+        print(f"[yellow]Warning: Error creating Care 1 base data: {e}[/yellow]")
     
     # Fix database permissions for Prisma
     fix_database_permissions()
