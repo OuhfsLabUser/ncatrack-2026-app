@@ -1069,8 +1069,8 @@ router.post('/data', async (req, res) => {
                   newHeader.splice(keyIdxRaw, 1);
                 }
                 
-                // Remove eye coordinates from their current positions (in reverse order to preserve indices)
-                for (let idx of [rightEyeYIdxRaw, rightEyeXIdxRaw, leftEyeYIdxRaw, leftEyeXIdxRaw].filter(i => i >= 0).sort((a, b) => b - a)) {
+                // Remove eye coordinates from their current positions (in reverse order to preserve indices, excluding left_eye_x)
+                for (let idx of [rightEyeYIdxRaw, rightEyeXIdxRaw, leftEyeYIdxRaw].filter(i => i >= 0).sort((a, b) => b - a)) {
                   newHeader.splice(idx, 1);
                 }
                 
@@ -1085,9 +1085,9 @@ router.post('/data', async (req, res) => {
                 // Re-calculate mouse_click index after key insertion
                 const mouseClickIdxAfterKeyInsertion = newHeader.indexOf('mouse_click');
                 
-                // Insert left_eye_x, left_eye_y, right_eye_x, right_eye_y after mouse_click
+                // Insert left_eye_y, right_eye_x, right_eye_y after mouse_click (excluding left_eye_x)
                 if (mouseClickIdxAfterKeyInsertion >= 0) {
-                  newHeader.splice(mouseClickIdxAfterKeyInsertion + 1, 0, 'left_eye_x', 'left_eye_y', 'right_eye_x', 'right_eye_y');
+                  newHeader.splice(mouseClickIdxAfterKeyInsertion + 1, 0, 'left_eye_y', 'right_eye_x', 'right_eye_y');
                 }
                 
                 // Insert large_eye_aoi before eye_aoi and eye description after large_eye_aoi
@@ -1117,7 +1117,23 @@ router.post('/data', async (req, res) => {
                 for (const { values } of validRows) {
                   const description = values[descriptionIndex]?.replace(/"/g, '') || '';
                   const keyVal = keyIdxCurrent >= 0 ? (values[keyIdxCurrent] || '') : '';
-                  const parsedValues = [...values];
+                  
+                  // Get values from currentHeader to calculate derived values
+                  const eyeAoiVal = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
+                  const mouseAoiVal = mouseAoiIdxCurrent >= 0 ? (values[mouseAoiIdxCurrent]?.replace(/"/g, '') || '') : (description && description !== 'Eye gaze sample' ? description : '');
+                  const eyeDescVal = description === 'Eye gaze sample' ? description : '';
+                  const largeEyeAoiVal = toLargeAoi(eyeAoiVal);
+                  const largeMouseAoiVal = toLargeAoi(mouseAoiVal);
+                  
+                  // Get eye coordinates from original values (excluding left_eye_x)
+                  const leftEyeYIdx = currentHeader.indexOf('left_eye_y');
+                  const rightEyeXIdx = currentHeader.indexOf('right_eye_x');
+                  const rightEyeYIdx = currentHeader.indexOf('right_eye_y');
+                  const leftEyeYVal = leftEyeYIdx >= 0 ? (values[leftEyeYIdx] || '') : '';
+                  const rightEyeXVal = rightEyeXIdx >= 0 ? (values[rightEyeXIdx] || '') : '';
+                  const rightEyeYVal = rightEyeYIdx >= 0 ? (values[rightEyeYIdx] || '') : '';
+                  
+                  // Calculate time_indicator if needed
                   let readableTime = '';
                   if (startTimeMs !== null) {
                     if (timestampIndex !== -1) {
@@ -1129,71 +1145,34 @@ router.post('/data', async (req, res) => {
                       if (offset) readableTime = formatTime(Number(offset));
                     }
                   }
-                  if (hasTimeIndicatorColumn) {
-                    parsedValues[timeIndicatorIndex] = `"${readableTime}"`;
-                  } else if (timestampIndex === 0) {
-                    parsedValues.splice(1, 0, `"${readableTime}"`);
-                  } else if (timestampIndex !== -1) {
-                    parsedValues.splice(timestampIndex + 1, 0, `"${readableTime}"`);
-                  } else if (offsetIndex !== -1) {
-                    parsedValues.splice(1, 0, `"${readableTime}"`);
-                  }
                   
-                  const eyeAoiVal = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
-                  const mouseAoiVal = mouseAoiIdxCurrent >= 0 ? (values[mouseAoiIdxCurrent]?.replace(/"/g, '') || '') : (description && description !== 'Eye gaze sample' ? description : '');
-                  const eyeDescVal = description === 'Eye gaze sample' ? description : '';
-                  const largeEyeAoiVal = toLargeAoi(eyeAoiVal);
-                  const largeMouseAoiVal = toLargeAoi(mouseAoiVal);
+                  // Build new row by mapping newHeader columns to values
+                  const newRow = newHeader.map(colName => {
+                    // Map renamed columns back to original
+                    let origColName = colName;
+                    if (colName === 'mouse description') origColName = 'description';
+                    else if (colName === 'mouse_aoi_top_left_x') origColName = 'aoi_top_left_x';
+                    else if (colName === 'mouse_aoi_top_left_y') origColName = 'aoi_top_left_y';
+                    else if (colName === 'mouse_aoi_bottom_right_x') origColName = 'aoi_bottom_right_x';
+                    else if (colName === 'mouse_aoi_bottom_right_y') origColName = 'aoi_bottom_right_y';
+                    
+                    // Return value based on column name
+                    if (colName === 'time_indicator') return `"${readableTime}"`;
+                    if (colName === 'large_eye_aoi') return largeEyeAoiVal;
+                    if (colName === 'eye description') return eyeDescVal;
+                    if (colName === 'large_mouse_aoi') return largeMouseAoiVal;
+                    if (colName === 'key') return keyVal;
+                    if (colName === 'left_eye_y') return leftEyeYVal;
+                    if (colName === 'right_eye_x') return rightEyeXVal;
+                    if (colName === 'right_eye_y') return rightEyeYVal;
+                    if (colName === 'mouse description' && description === 'Eye gaze sample') return '';
+                    
+                    // For standard columns, find in currentHeader
+                    const origIdx = currentHeader.indexOf(origColName);
+                    return origIdx >= 0 ? (values[origIdx] || '') : '';
+                  });
                   
-                  // Get the left/right eye coordinates from original values before they're removed
-                  const leftEyeXIdx = currentHeader.indexOf('left_eye_x');
-                  const leftEyeYIdx = currentHeader.indexOf('left_eye_y');
-                  const rightEyeXIdx = currentHeader.indexOf('right_eye_x');
-                  const rightEyeYIdx = currentHeader.indexOf('right_eye_y');
-                  const leftEyeXVal = leftEyeXIdx >= 0 ? (values[leftEyeXIdx] || '') : '';
-                  const leftEyeYVal = leftEyeYIdx >= 0 ? (values[leftEyeYIdx] || '') : '';
-                  const rightEyeXVal = rightEyeXIdx >= 0 ? (values[rightEyeXIdx] || '') : '';
-                  const rightEyeYVal = rightEyeYIdx >= 0 ? (values[rightEyeYIdx] || '') : '';
-                  
-                  // Remove key, left_eye_x, left_eye_y, right_eye_x, right_eye_y from parsedValues (in reverse order)
-                  for (let idx of [rightEyeYIdx, rightEyeXIdx, leftEyeYIdx, leftEyeXIdx, keyIdxCurrent].filter(i => i >= 0).sort((a, b) => b - a)) {
-                    parsedValues.splice(idx, 1);
-                  }
-                  
-                  // Insert left_eye_x, left_eye_y, right_eye_x, right_eye_y after mouse_click
-                  const mouseClickIdxInParsed = newHeader.indexOf('mouse_click');
-                  if (mouseClickIdxInParsed >= 0) {
-                    parsedValues.splice(mouseClickIdxInParsed + 1, 0, leftEyeXVal, leftEyeYVal, rightEyeXVal, rightEyeYVal);
-                  }
-                  
-                  // Insert key before mouse_click
-                  const mouseClickIdxForKeyInsertion = newHeader.indexOf('mouse_click');
-                  if (mouseClickIdxForKeyInsertion >= 0) {
-                    parsedValues.splice(mouseClickIdxForKeyInsertion, 0, keyVal);
-                  }
-                  
-                  // Insert large_eye_aoi before eye_aoi
-                  const eyeAoiIdxInParsed = newHeader.indexOf('eye_aoi');
-                  if (eyeAoiIdxInParsed >= 0) {
-                    parsedValues.splice(eyeAoiIdxInParsed, 0, largeEyeAoiVal);
-                    // Insert eye description after the newly inserted large_eye_aoi
-                    parsedValues.splice(eyeAoiIdxInParsed + 2, 0, eyeDescVal);
-                  } else {
-                    parsedValues.push(largeEyeAoiVal, '', eyeDescVal);
-                  }
-                  
-                  // Insert large_mouse_aoi before mouse_aoi
-                  const mouseAoiIdxInParsed = newHeader.indexOf('mouse_aoi');
-                  if (mouseAoiIdxInParsed >= 0) {
-                    parsedValues.splice(mouseAoiIdxInParsed, 0, largeMouseAoiVal);
-                  } else {
-                    parsedValues.push(largeMouseAoiVal);
-                  }
-                  const mouseDescIdx = newHeader.indexOf('mouse description');
-                  if (mouseDescIdx >= 0) {
-                    parsedValues[mouseDescIdx] = description === 'Eye gaze sample' ? '' : parsedValues[mouseDescIdx];
-                  }
-                  rawDataRows.push(parsedValues.map(v => {
+                  rawDataRows.push(newRow.map(v => {
                     const str = String(v);
                     return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
                   }).join(','));
@@ -1206,29 +1185,73 @@ router.post('/data', async (req, res) => {
                 console.log(`Exported raw_data (excluding Text input rows): ${item}`);
                 filesExported++;
 
-                const { header: processedHeader, processRow: processRowForTracking } = ensureTimeIndicatorInSecondColumn(currentHeader, startTimeMs);
-                for (let i = 1; i < lines.length; i++) {
-                  const line = lines[i].trim();
-                  if (!line) continue;
-                  const values = parseCSVLine(line);
-                  if (values.length < currentHeader.length) continue;
+                // Build eye_tracking and mouse_movement data using the new header structure
+                for (const { values } of validRows) {
                   const description = values[descriptionIndex]?.replace(/"/g, '') || '';
-                  const timestamp = timestampIndex !== -1 ? values[timestampIndex]?.replace(/"/g, '') || '' : '';
-                  const offset = offsetIndex !== -1 ? values[offsetIndex]?.replace(/"/g, '') || '' : '';
-                  const processedValues = processRowForTracking(values, timestamp, offset);
-                  const processedLine = processedValues.map(v => {
+                  const keyVal = keyIdxCurrent >= 0 ? (values[keyIdxCurrent] || '') : '';
+                  
+                  const eyeAoiVal = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
+                  const mouseAoiVal = mouseAoiIdxCurrent >= 0 ? (values[mouseAoiIdxCurrent]?.replace(/"/g, '') || '') : (description && description !== 'Eye gaze sample' ? description : '');
+                  const eyeDescVal = description === 'Eye gaze sample' ? description : '';
+                  const largeEyeAoiVal = toLargeAoi(eyeAoiVal);
+                  const largeMouseAoiVal = toLargeAoi(mouseAoiVal);
+                  
+                  const leftEyeYIdx = currentHeader.indexOf('left_eye_y');
+                  const rightEyeXIdx = currentHeader.indexOf('right_eye_x');
+                  const rightEyeYIdx = currentHeader.indexOf('right_eye_y');
+                  const leftEyeYVal = leftEyeYIdx >= 0 ? (values[leftEyeYIdx] || '') : '';
+                  const rightEyeXVal = rightEyeXIdx >= 0 ? (values[rightEyeXIdx] || '') : '';
+                  const rightEyeYVal = rightEyeYIdx >= 0 ? (values[rightEyeYIdx] || '') : '';
+                  
+                  let readableTime = '';
+                  if (startTimeMs !== null) {
+                    if (timestampIndex !== -1) {
+                      const timestamp = values[timestampIndex]?.replace(/"/g, '') || '';
+                      const currentTimeMs = parseTimestampToMs(timestamp);
+                      if (currentTimeMs !== null) readableTime = formatTime(currentTimeMs - startTimeMs);
+                    } else if (offsetIndex !== -1) {
+                      const offset = values[offsetIndex]?.replace(/"/g, '') || '';
+                      if (offset) readableTime = formatTime(Number(offset));
+                    }
+                  }
+                  
+                  const newRow = newHeader.map(colName => {
+                    let origColName = colName;
+                    if (colName === 'mouse description') origColName = 'description';
+                    else if (colName === 'mouse_aoi_top_left_x') origColName = 'aoi_top_left_x';
+                    else if (colName === 'mouse_aoi_top_left_y') origColName = 'aoi_top_left_y';
+                    else if (colName === 'mouse_aoi_bottom_right_x') origColName = 'aoi_bottom_right_x';
+                    else if (colName === 'mouse_aoi_bottom_right_y') origColName = 'aoi_bottom_right_y';
+                    
+                    if (colName === 'time_indicator') return `"${readableTime}"`;
+                    if (colName === 'large_eye_aoi') return largeEyeAoiVal;
+                    if (colName === 'eye description') return eyeDescVal;
+                    if (colName === 'large_mouse_aoi') return largeMouseAoiVal;
+                    if (colName === 'key') return keyVal;
+                    if (colName === 'left_eye_y') return leftEyeYVal;
+                    if (colName === 'right_eye_x') return rightEyeXVal;
+                    if (colName === 'right_eye_y') return rightEyeYVal;
+                    if (colName === 'mouse description' && description === 'Eye gaze sample') return '';
+                    
+                    const origIdx = currentHeader.indexOf(origColName);
+                    return origIdx >= 0 ? (values[origIdx] || '') : '';
+                  });
+                  
+                  const csvLine = newRow.map(v => {
                     const str = String(v);
                     return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
                   }).join(',');
+                  
                   if (description === 'Eye gaze sample') {
-                    eyeGazeRows.push({ processedValues, description });
+                    eyeGazeRows.push(csvLine);
                   } else if (!isTextInputDescription(description)) {
-                    mouseMovementRows.push(processedLine);
+                    mouseMovementRows.push(csvLine);
                   }
                 }
-                const headerWithMouseDesc = (processedHeader || []).map(c => c === 'description' ? 'mouse description' : c);
-                if (!header || header.indexOf('time_indicator') !== 1) header = headerWithMouseDesc;
+                
+                if (!header) header = newHeader;
                 console.log(`Processed ${item}: ${lines.length - 1} rows`);
+
               } catch (error) {
                 console.error(`Error processing ${item}:`, error);
               }
@@ -1240,37 +1263,16 @@ router.post('/data', async (req, res) => {
 
         if (header && eyeGazeRows.length > 0) {
           const eyeTrackingPath = path.join(aoiFilesDir, 'eye_tracking.csv');
-          const eyeHeader = [...header];
-          const eyeAoiIdx = eyeHeader.indexOf('eye_aoi');
-          if (eyeAoiIdx >= 0) {
-            eyeHeader.splice(eyeAoiIdx + 1, 0, 'eye description', 'large_eye_aoi');
-          } else {
-            eyeHeader.push('eye_aoi', 'eye description', 'large_eye_aoi');
-          }
-          const eyeRows = eyeGazeRows.map(({ processedValues, description }) => {
-            const newValues = [...processedValues];
-            const eyeAoiVal = eyeAoiIdx >= 0 ? (String(processedValues[eyeAoiIdx] ?? '').replace(/"/g, '')) : '';
-            const largeEyeAoiVal = toLargeAoi(eyeAoiVal);
-            const insertIdx = eyeAoiIdx >= 0 ? eyeAoiIdx + 1 : newValues.length;
-            newValues.splice(insertIdx, 0, description ?? '', largeEyeAoiVal);
-            const mouseDescIdx = eyeHeader.indexOf('mouse description');
-            if (mouseDescIdx >= 0) newValues[mouseDescIdx] = '';
-            return newValues.map(v => {
-              const str = String(v);
-              return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
-            }).join(',');
-          });
-          fs.writeFileSync(eyeTrackingPath, UTF8_BOM + [eyeHeader.join(','), ...eyeRows].join('\n') + '\n', 'utf8');
+          fs.writeFileSync(eyeTrackingPath, UTF8_BOM + [header.join(','), ...eyeGazeRows].join('\n') + '\n', 'utf8');
           exportResults.push({ modelName: 'AOI_logs/eye_tracking.csv', rowCount: eyeGazeRows.length, success: true });
           console.log(`Exported eye tracking data: ${eyeGazeRows.length} rows`);
           filesExported++;
         }
         if (header) {
           const mouseMovementPath = path.join(aoiFilesDir, 'mouse_movement.csv');
-          const mouseHeader = header.map(c => c === 'description' ? 'mouse description' : c);
           const mouseMovementContent = mouseMovementRows.length > 0
-            ? UTF8_BOM + [mouseHeader.join(','), ...mouseMovementRows].join('\n') + '\n'
-            : UTF8_BOM + mouseHeader.join(',') + '\n';
+            ? UTF8_BOM + [header.join(','), ...mouseMovementRows].join('\n') + '\n'
+            : UTF8_BOM + header.join(',') + '\n';
           fs.writeFileSync(mouseMovementPath, mouseMovementContent, 'utf8');
           exportResults.push({ modelName: 'AOI_logs/mouse_movement.csv', rowCount: mouseMovementRows.length, success: true });
           console.log(`Exported mouse movement data: ${mouseMovementRows.length} rows`);
