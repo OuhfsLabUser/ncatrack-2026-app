@@ -112,11 +112,27 @@ const PersonProfile = ({ open, person, onClose }) => {
   
   if (!person) return null;
   
-  // Format date in MM/DD/YYYY format
+  // Format date in MM/DD/YYYY format without triggering timezone shifts
   const formatDate = (dateString) => {
     if (!dateString) return '';
+
+    // If we already have a plain YYYY-MM-DD string, format it directly as MM/DD/YYYY
+    if (typeof dateString === 'string') {
+      const trimmed = dateString.trim();
+      const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        const [, year, month, day] = match;
+        return `${month}/${day}/${year}`;
+      }
+    }
+
+    // Fallback for other formats: still try Date, but this should be rare
     const date = new Date(dateString);
-    return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
+    if (isNaN(date.getTime())) return '';
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
   };
 
   return (
