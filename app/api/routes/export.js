@@ -1041,28 +1041,82 @@ router.post('/data', async (req, res) => {
                 }
 
                 const rawDataRows = [];
-                const newHeader = [...currentHeader].map(c => c === 'description' ? 'mouse description' : c);
+                const newHeader = [...currentHeader].map(c => {
+                  if (c === 'description') return 'mouse description';
+                  if (c === 'aoi_top_left_x') return 'mouse_aoi_top_left_x';
+                  if (c === 'aoi_top_left_y') return 'mouse_aoi_top_left_y';
+                  if (c === 'aoi_bottom_right_x') return 'mouse_aoi_bottom_right_x';
+                  if (c === 'aoi_bottom_right_y') return 'mouse_aoi_bottom_right_y';
+                  return c;
+                });
                 const hasTimeIndicatorColumn = timeIndicatorIndex !== -1;
                 if (!hasTimeIndicatorColumn && timestampIndex === 0) {
                   newHeader.splice(1, 0, 'time_indicator');
                 }
-                const eyeAoiIdxRaw = newHeader.indexOf('eye_aoi');
+                
+                // Get indices for reordering
+                const keyIdxRaw = newHeader.indexOf('key');
+                const mouseClickIdxRaw = newHeader.indexOf('mouse_click');
                 const mouseAoiIdxRaw = newHeader.indexOf('mouse_aoi');
-                if (eyeAoiIdxRaw >= 0) {
-                  newHeader.splice(eyeAoiIdxRaw + 1, 0, 'eye description', 'large_eye_aoi');
-                } else {
-                  newHeader.push('eye_aoi', 'eye description', 'large_eye_aoi');
+                const eyeAoiIdxRaw = newHeader.indexOf('eye_aoi');
+                const leftEyeXIdxRaw = newHeader.indexOf('left_eye_x');
+                const leftEyeYIdxRaw = newHeader.indexOf('left_eye_y');
+                const rightEyeXIdxRaw = newHeader.indexOf('right_eye_x');
+                const rightEyeYIdxRaw = newHeader.indexOf('right_eye_y');
+                
+                // Remove key from its current position if it exists
+                if (keyIdxRaw >= 0) {
+                  newHeader.splice(keyIdxRaw, 1);
                 }
-                if (mouseAoiIdxRaw >= 0) {
-                  newHeader.splice(mouseAoiIdxRaw + 1, 0, 'large_mouse_aoi');
-                } else {
-                  newHeader.push('large_mouse_aoi');
+                
+                // Remove eye coordinates from their current positions (in reverse order to preserve indices)
+                for (let idx of [rightEyeYIdxRaw, rightEyeXIdxRaw, leftEyeYIdxRaw, leftEyeXIdxRaw].filter(i => i >= 0).sort((a, b) => b - a)) {
+                  newHeader.splice(idx, 1);
                 }
+                
+                // Re-calculate indices after removal
+                const mouseClickIdxAfterRemoval = newHeader.indexOf('mouse_click');
+                
+                // Insert key before mouse_click
+                if (mouseClickIdxAfterRemoval >= 0) {
+                  newHeader.splice(mouseClickIdxAfterRemoval, 0, 'key');
+                }
+                
+                // Re-calculate mouse_click index after key insertion
+                const mouseClickIdxAfterKeyInsertion = newHeader.indexOf('mouse_click');
+                
+                // Insert left_eye_x, left_eye_y, right_eye_x, right_eye_y after mouse_click
+                if (mouseClickIdxAfterKeyInsertion >= 0) {
+                  newHeader.splice(mouseClickIdxAfterKeyInsertion + 1, 0, 'left_eye_x', 'left_eye_y', 'right_eye_x', 'right_eye_y');
+                }
+                
+                // Insert large_eye_aoi before eye_aoi and eye description after large_eye_aoi
+                const eyeAoiIdxFinal = newHeader.indexOf('eye_aoi');
+                if (eyeAoiIdxFinal >= 0) {
+                  newHeader.splice(eyeAoiIdxFinal, 0, 'large_eye_aoi');
+                  const largeEyeAoiIdxFinal = newHeader.indexOf('large_eye_aoi');
+                  if (largeEyeAoiIdxFinal >= 0) {
+                    newHeader.splice(largeEyeAoiIdxFinal + 1, 0, 'eye description');
+                  }
+                } else {
+                  newHeader.push('large_eye_aoi', 'eye_aoi', 'eye description');
+                }
+                
+                // Insert large_mouse_aoi before mouse_aoi
+                const mouseAoiIdxFinal = newHeader.indexOf('mouse_aoi');
+                if (mouseAoiIdxFinal >= 0) {
+                  newHeader.splice(mouseAoiIdxFinal, 0, 'large_mouse_aoi');
+                } else {
+                  newHeader.push('large_mouse_aoi', 'mouse_aoi');
+                }
+                
                 const eyeAoiIdxCurrent = currentHeader.indexOf('eye_aoi');
                 const mouseAoiIdxCurrent = currentHeader.indexOf('mouse_aoi');
+                const keyIdxCurrent = currentHeader.indexOf('key');
                 rawDataRows.push(newHeader.join(','));
                 for (const { values } of validRows) {
                   const description = values[descriptionIndex]?.replace(/"/g, '') || '';
+                  const keyVal = keyIdxCurrent >= 0 ? (values[keyIdxCurrent] || '') : '';
                   const parsedValues = [...values];
                   let readableTime = '';
                   if (startTimeMs !== null) {
@@ -1084,22 +1138,54 @@ router.post('/data', async (req, res) => {
                   } else if (offsetIndex !== -1) {
                     parsedValues.splice(1, 0, `"${readableTime}"`);
                   }
+                  
                   const eyeAoiVal = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
                   const mouseAoiVal = mouseAoiIdxCurrent >= 0 ? (values[mouseAoiIdxCurrent]?.replace(/"/g, '') || '') : (description && description !== 'Eye gaze sample' ? description : '');
                   const eyeDescVal = description === 'Eye gaze sample' ? description : '';
                   const largeEyeAoiVal = toLargeAoi(eyeAoiVal);
                   const largeMouseAoiVal = toLargeAoi(mouseAoiVal);
-                  if (eyeAoiIdxRaw >= 0) {
-                    parsedValues.splice(eyeAoiIdxRaw + 1, 0, eyeDescVal, largeEyeAoiVal);
-                  } else {
-                    parsedValues.push('', eyeDescVal, largeEyeAoiVal);
+                  
+                  // Get the left/right eye coordinates from original values before they're removed
+                  const leftEyeXIdx = currentHeader.indexOf('left_eye_x');
+                  const leftEyeYIdx = currentHeader.indexOf('left_eye_y');
+                  const rightEyeXIdx = currentHeader.indexOf('right_eye_x');
+                  const rightEyeYIdx = currentHeader.indexOf('right_eye_y');
+                  const leftEyeXVal = leftEyeXIdx >= 0 ? (values[leftEyeXIdx] || '') : '';
+                  const leftEyeYVal = leftEyeYIdx >= 0 ? (values[leftEyeYIdx] || '') : '';
+                  const rightEyeXVal = rightEyeXIdx >= 0 ? (values[rightEyeXIdx] || '') : '';
+                  const rightEyeYVal = rightEyeYIdx >= 0 ? (values[rightEyeYIdx] || '') : '';
+                  
+                  // Remove key, left_eye_x, left_eye_y, right_eye_x, right_eye_y from parsedValues (in reverse order)
+                  for (let idx of [rightEyeYIdx, rightEyeXIdx, leftEyeYIdx, leftEyeXIdx, keyIdxCurrent].filter(i => i >= 0).sort((a, b) => b - a)) {
+                    parsedValues.splice(idx, 1);
                   }
-                  // Insert large_mouse_aoi after mouse_aoi; if mouse_aoi comes after eye_aoi we already inserted 2 cols so shift position
-                  const mouseInsertPos = mouseAoiIdxRaw >= 0
-                    ? mouseAoiIdxRaw + 1 + (mouseAoiIdxRaw > eyeAoiIdxRaw ? 2 : 0)
-                    : parsedValues.length;
-                  if (mouseAoiIdxRaw >= 0) {
-                    parsedValues.splice(mouseInsertPos, 0, largeMouseAoiVal);
+                  
+                  // Insert left_eye_x, left_eye_y, right_eye_x, right_eye_y after mouse_click
+                  const mouseClickIdxInParsed = newHeader.indexOf('mouse_click');
+                  if (mouseClickIdxInParsed >= 0) {
+                    parsedValues.splice(mouseClickIdxInParsed + 1, 0, leftEyeXVal, leftEyeYVal, rightEyeXVal, rightEyeYVal);
+                  }
+                  
+                  // Insert key before mouse_click
+                  const mouseClickIdxForKeyInsertion = newHeader.indexOf('mouse_click');
+                  if (mouseClickIdxForKeyInsertion >= 0) {
+                    parsedValues.splice(mouseClickIdxForKeyInsertion, 0, keyVal);
+                  }
+                  
+                  // Insert large_eye_aoi before eye_aoi
+                  const eyeAoiIdxInParsed = newHeader.indexOf('eye_aoi');
+                  if (eyeAoiIdxInParsed >= 0) {
+                    parsedValues.splice(eyeAoiIdxInParsed, 0, largeEyeAoiVal);
+                    // Insert eye description after the newly inserted large_eye_aoi
+                    parsedValues.splice(eyeAoiIdxInParsed + 2, 0, eyeDescVal);
+                  } else {
+                    parsedValues.push(largeEyeAoiVal, '', eyeDescVal);
+                  }
+                  
+                  // Insert large_mouse_aoi before mouse_aoi
+                  const mouseAoiIdxInParsed = newHeader.indexOf('mouse_aoi');
+                  if (mouseAoiIdxInParsed >= 0) {
+                    parsedValues.splice(mouseAoiIdxInParsed, 0, largeMouseAoiVal);
                   } else {
                     parsedValues.push(largeMouseAoiVal);
                   }
