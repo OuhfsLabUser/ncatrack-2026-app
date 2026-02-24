@@ -41,6 +41,48 @@ function convertToCSV(data, columns) {
   return [header, ...rows].join('\n');
 }
 
+// a single source of truth for all exported columns
+const CSV_COLUMNS = [
+  'timestamp_iso',
+  'time_indicator',
+  'offset_ms',
+  'page',
+  'mouse_x',
+  'mouse_y',
+  'large_mouse_aoi',
+  'mouse_aoi',
+  'mouse_aoi_top_left_x',
+  'mouse_aoi_top_left_y',
+  'mouse_aoi_bottom_right_x',
+  'mouse_aoi_bottom_right_y',
+  'mouse description',
+  'key',
+  'mouse_click',
+  // eye tracking columns start here
+  'left_eye_x',
+  'left_eye_y',
+  'right_eye_x',
+  'right_eye_y',
+  'large_eye_aoi',
+  'eye description',
+  'eye_aoi'
+];
+
+// iterate in CSV_COLUMNS order and escape values the same way convertToCSV does
+function formatRow(row) {
+  return CSV_COLUMNS.map(col => {
+    const value = row[col];
+    if (value === null || value === undefined) {
+      return '';
+    }
+    const stringValue = String(value);
+    if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+  }).join(',');
+}
+
 // Strip UTF-8 BOM from string (CSV files are written with BOM; first column would otherwise be "\uFEFFtimestamp_iso")
 function stripBOM(s) {
   return (s && s.length > 0 && s.charCodeAt(0) === 0xFEFF) ? s.slice(1) : (s || '');
@@ -988,7 +1030,8 @@ router.post('/data', async (req, res) => {
         let filesExported = 0;
         
         // Collect from combined raw CSV(s); build raw_data.csv and split into eye_tracking / mouse_movement
-        let header = null;
+        // header will always use canonical column list - prevents misalignment
+        let header = CSV_COLUMNS;
         const eyeGazeRows = [];
         const mouseMovementRows = [];
 
@@ -1018,7 +1061,7 @@ router.post('/data', async (req, res) => {
                   console.log(`Skipping ${item}: no mouse description/description column for split`);
                   continue;
                 }
-                if (!header) header = currentHeader;
+                // header is fixed to CSV_COLUMNS so we don't use currentHeader
 
                 const validRows = [];
                 let startTimeMs = null;
@@ -1041,99 +1084,37 @@ router.post('/data', async (req, res) => {
                 }
 
                 const rawDataRows = [];
-                const newHeader = [...currentHeader].map(c => {
-                  if (c === 'description') return 'mouse description';
-                  if (c === 'aoi_top_left_x') return 'mouse_aoi_top_left_x';
-                  if (c === 'aoi_top_left_y') return 'mouse_aoi_top_left_y';
-                  if (c === 'aoi_bottom_right_x') return 'mouse_aoi_bottom_right_x';
-                  if (c === 'aoi_bottom_right_y') return 'mouse_aoi_bottom_right_y';
-                  return c;
-                });
-                const hasTimeIndicatorColumn = timeIndicatorIndex !== -1;
-                if (!hasTimeIndicatorColumn && timestampIndex === 0) {
-                  newHeader.splice(1, 0, 'time_indicator');
-                }
-                
-                // Get indices for reordering
-                const keyIdxRaw = newHeader.indexOf('key');
-                const mouseClickIdxRaw = newHeader.indexOf('mouse_click');
-                const mouseAoiIdxRaw = newHeader.indexOf('mouse_aoi');
-                const eyeAoiIdxRaw = newHeader.indexOf('eye_aoi');
-                const leftEyeXIdxRaw = newHeader.indexOf('left_eye_x');
-                const leftEyeYIdxRaw = newHeader.indexOf('left_eye_y');
-                const rightEyeXIdxRaw = newHeader.indexOf('right_eye_x');
-                const rightEyeYIdxRaw = newHeader.indexOf('right_eye_y');
-                
-                // Remove key from its current position if it exists
-                if (keyIdxRaw >= 0) {
-                  newHeader.splice(keyIdxRaw, 1);
-                }
-                
-                // Remove eye coordinates from their current positions (in reverse order to preserve indices, excluding left_eye_x)
-                for (let idx of [rightEyeYIdxRaw, rightEyeXIdxRaw, leftEyeYIdxRaw].filter(i => i >= 0).sort((a, b) => b - a)) {
-                  newHeader.splice(idx, 1);
-                }
-                
-                // Re-calculate indices after removal
-                const mouseClickIdxAfterRemoval = newHeader.indexOf('mouse_click');
-                
-                // Insert key before mouse_click
-                if (mouseClickIdxAfterRemoval >= 0) {
-                  newHeader.splice(mouseClickIdxAfterRemoval, 0, 'key');
-                }
-                
-                // Re-calculate mouse_click index after key insertion
-                const mouseClickIdxAfterKeyInsertion = newHeader.indexOf('mouse_click');
-                
-                // Insert left_eye_y, right_eye_x, right_eye_y after mouse_click (excluding left_eye_x)
-                if (mouseClickIdxAfterKeyInsertion >= 0) {
-                  newHeader.splice(mouseClickIdxAfterKeyInsertion + 1, 0, 'left_eye_y', 'right_eye_x', 'right_eye_y');
-                }
-                
-                // Insert large_eye_aoi before eye_aoi and eye description after large_eye_aoi
-                const eyeAoiIdxFinal = newHeader.indexOf('eye_aoi');
-                if (eyeAoiIdxFinal >= 0) {
-                  newHeader.splice(eyeAoiIdxFinal, 0, 'large_eye_aoi');
-                  const largeEyeAoiIdxFinal = newHeader.indexOf('large_eye_aoi');
-                  if (largeEyeAoiIdxFinal >= 0) {
-                    newHeader.splice(largeEyeAoiIdxFinal + 1, 0, 'eye description');
-                  }
-                } else {
-                  newHeader.push('large_eye_aoi', 'eye_aoi', 'eye description');
-                }
-                
-                // Insert large_mouse_aoi before mouse_aoi
-                const mouseAoiIdxFinal = newHeader.indexOf('mouse_aoi');
-                if (mouseAoiIdxFinal >= 0) {
-                  newHeader.splice(mouseAoiIdxFinal, 0, 'large_mouse_aoi');
-                } else {
-                  newHeader.push('large_mouse_aoi', 'mouse_aoi');
-                }
-                
+                // use canonical column list for all exports
+                if (!header) header = CSV_COLUMNS;
+                rawDataRows.push(CSV_COLUMNS.join(','));
+
+                // precompute some original indexes to speed loop
                 const eyeAoiIdxCurrent = currentHeader.indexOf('eye_aoi');
                 const mouseAoiIdxCurrent = currentHeader.indexOf('mouse_aoi');
                 const keyIdxCurrent = currentHeader.indexOf('key');
-                rawDataRows.push(newHeader.join(','));
+                const leftEyeXIdx = currentHeader.indexOf('left_eye_x');
+                const leftEyeYIdx = currentHeader.indexOf('left_eye_y');
+                const rightEyeXIdx = currentHeader.indexOf('right_eye_x');
+                const rightEyeYIdx = currentHeader.indexOf('right_eye_y');
+                const pageIdx = currentHeader.indexOf('page');
+                const mouseXIdx = currentHeader.indexOf('mouse_x');
+                const mouseYIdx = currentHeader.indexOf('mouse_y');
+                const mouseClickIdx = currentHeader.indexOf('mouse_click');
+                const aoiTopLeftXIdx = currentHeader.indexOf('aoi_top_left_x');
+                const aoiTopLeftYIdx = currentHeader.indexOf('aoi_top_left_y');
+                const aoiBottomRightXIdx = currentHeader.indexOf('aoi_bottom_right_x');
+                const aoiBottomRightYIdx = currentHeader.indexOf('aoi_bottom_right_y');
+
                 for (const { values } of validRows) {
                   const description = values[descriptionIndex]?.replace(/"/g, '') || '';
-                  const keyVal = keyIdxCurrent >= 0 ? (values[keyIdxCurrent] || '') : '';
-                  
-                  // Get values from currentHeader to calculate derived values
                   const eyeAoiVal = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
                   const mouseAoiVal = mouseAoiIdxCurrent >= 0 ? (values[mouseAoiIdxCurrent]?.replace(/"/g, '') || '') : (description && description !== 'Eye gaze sample' ? description : '');
-                  const eyeDescVal = description === 'Eye gaze sample' ? description : '';
-                  const largeEyeAoiVal = toLargeAoi(eyeAoiVal);
-                  const largeMouseAoiVal = toLargeAoi(mouseAoiVal);
-                  
-                  // Get eye coordinates from original values (excluding left_eye_x)
-                  const leftEyeYIdx = currentHeader.indexOf('left_eye_y');
-                  const rightEyeXIdx = currentHeader.indexOf('right_eye_x');
-                  const rightEyeYIdx = currentHeader.indexOf('right_eye_y');
-                  const leftEyeYVal = leftEyeYIdx >= 0 ? (values[leftEyeYIdx] || '') : '';
-                  const rightEyeXVal = rightEyeXIdx >= 0 ? (values[rightEyeXIdx] || '') : '';
-                  const rightEyeYVal = rightEyeYIdx >= 0 ? (values[rightEyeYIdx] || '') : '';
-                  
-                  // Calculate time_indicator if needed
+                  const keyVal = keyIdxCurrent >= 0 ? values[keyIdxCurrent] || '' : '';
+                  const leftEyeXVal = leftEyeXIdx >= 0 ? values[leftEyeXIdx] || '' : '';
+                  const leftEyeYVal = leftEyeYIdx >= 0 ? values[leftEyeYIdx] || '' : '';
+                  const rightEyeXVal = rightEyeXIdx >= 0 ? values[rightEyeXIdx] || '' : '';
+                  const rightEyeYVal = rightEyeYIdx >= 0 ? values[rightEyeYIdx] || '' : '';
+
                   let readableTime = '';
                   if (startTimeMs !== null) {
                     if (timestampIndex !== -1) {
@@ -1145,38 +1126,42 @@ router.post('/data', async (req, res) => {
                       if (offset) readableTime = formatTime(Number(offset));
                     }
                   }
-                  
-                  // Build new row by mapping newHeader columns to values
-                  const newRow = newHeader.map(colName => {
-                    // Map renamed columns back to original
-                    let origColName = colName;
-                    if (colName === 'mouse description') origColName = 'description';
-                    else if (colName === 'mouse_aoi_top_left_x') origColName = 'aoi_top_left_x';
-                    else if (colName === 'mouse_aoi_top_left_y') origColName = 'aoi_top_left_y';
-                    else if (colName === 'mouse_aoi_bottom_right_x') origColName = 'aoi_bottom_right_x';
-                    else if (colName === 'mouse_aoi_bottom_right_y') origColName = 'aoi_bottom_right_y';
-                    
-                    // Return value based on column name
-                    if (colName === 'time_indicator') return `"${readableTime}"`;
-                    if (colName === 'large_eye_aoi') return largeEyeAoiVal;
-                    if (colName === 'eye description') return eyeDescVal;
-                    if (colName === 'large_mouse_aoi') return largeMouseAoiVal;
-                    if (colName === 'key') return keyVal;
-                    if (colName === 'left_eye_y') return leftEyeYVal;
-                    if (colName === 'right_eye_x') return rightEyeXVal;
-                    if (colName === 'right_eye_y') return rightEyeYVal;
-                    if (colName === 'mouse description' && description === 'Eye gaze sample') return '';
-                    
-                    // For standard columns, find in currentHeader
-                    const origIdx = currentHeader.indexOf(origColName);
-                    return origIdx >= 0 ? (values[origIdx] || '') : '';
-                  });
-                  
-                  rawDataRows.push(newRow.map(v => {
-                    const str = String(v);
-                    return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
-                  }).join(','));
+
+                  const rowObj = {
+                    timestamp_iso: timestampIndex >= 0 ? (values[timestampIndex]?.replace(/"/g, '') || '') : '',
+                    time_indicator: readableTime,
+                    offset_ms: offsetIndex >= 0 ? (values[offsetIndex]?.replace(/"/g, '') || '') : '',
+                    page: pageIdx >= 0 ? values[pageIdx] || '' : '',
+                    mouse_x: mouseXIdx >= 0 ? values[mouseXIdx] || '' : '',
+                    mouse_y: mouseYIdx >= 0 ? values[mouseYIdx] || '' : '',
+                    large_mouse_aoi: toLargeAoi(mouseAoiVal),
+                    mouse_aoi: mouseAoiVal,
+                    mouse_aoi_top_left_x: aoiTopLeftXIdx >= 0 ? values[aoiTopLeftXIdx] || '' : '',
+                    mouse_aoi_top_left_y: aoiTopLeftYIdx >= 0 ? values[aoiTopLeftYIdx] || '' : '',
+                    mouse_aoi_bottom_right_x: aoiBottomRightXIdx >= 0 ? values[aoiBottomRightXIdx] || '' : '',
+                    mouse_aoi_bottom_right_y: aoiBottomRightYIdx >= 0 ? values[aoiBottomRightYIdx] || '' : '',
+                    'mouse description': description === 'Eye gaze sample' ? '' : description,
+                    key: keyVal,
+                    mouse_click: mouseClickIdx >= 0 ? values[mouseClickIdx] || '' : '',
+                    left_eye_x: leftEyeXVal,
+                    left_eye_y: leftEyeYVal,
+                    right_eye_x: rightEyeXVal,
+                    right_eye_y: rightEyeYVal,
+                    large_eye_aoi: toLargeAoi(eyeAoiVal),
+                    'eye description': description === 'Eye gaze sample' ? description : '',
+                    eye_aoi: eyeAoiVal
+                  };
+
+                  const line = formatRow(rowObj);
+                  rawDataRows.push(line);
+
+                  if (description === 'Eye gaze sample') {
+                    eyeGazeRows.push(line);
+                  } else if (!isTextInputDescription(description)) {
+                    mouseMovementRows.push(line);
+                  }
                 }
+
                 const destPath = path.join(destDir, 'raw_data.csv');
                 fs.writeFileSync(destPath, UTF8_BOM + rawDataRows.join('\n') + '\n', 'utf8');
                 const rel = path.relative(aoiFilesDir, destDir);
@@ -1185,71 +1170,7 @@ router.post('/data', async (req, res) => {
                 console.log(`Exported raw_data (excluding Text input rows): ${item}`);
                 filesExported++;
 
-                // Build eye_tracking and mouse_movement data using the new header structure
-                for (const { values } of validRows) {
-                  const description = values[descriptionIndex]?.replace(/"/g, '') || '';
-                  const keyVal = keyIdxCurrent >= 0 ? (values[keyIdxCurrent] || '') : '';
-                  
-                  const eyeAoiVal = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
-                  const mouseAoiVal = mouseAoiIdxCurrent >= 0 ? (values[mouseAoiIdxCurrent]?.replace(/"/g, '') || '') : (description && description !== 'Eye gaze sample' ? description : '');
-                  const eyeDescVal = description === 'Eye gaze sample' ? description : '';
-                  const largeEyeAoiVal = toLargeAoi(eyeAoiVal);
-                  const largeMouseAoiVal = toLargeAoi(mouseAoiVal);
-                  
-                  const leftEyeYIdx = currentHeader.indexOf('left_eye_y');
-                  const rightEyeXIdx = currentHeader.indexOf('right_eye_x');
-                  const rightEyeYIdx = currentHeader.indexOf('right_eye_y');
-                  const leftEyeYVal = leftEyeYIdx >= 0 ? (values[leftEyeYIdx] || '') : '';
-                  const rightEyeXVal = rightEyeXIdx >= 0 ? (values[rightEyeXIdx] || '') : '';
-                  const rightEyeYVal = rightEyeYIdx >= 0 ? (values[rightEyeYIdx] || '') : '';
-                  
-                  let readableTime = '';
-                  if (startTimeMs !== null) {
-                    if (timestampIndex !== -1) {
-                      const timestamp = values[timestampIndex]?.replace(/"/g, '') || '';
-                      const currentTimeMs = parseTimestampToMs(timestamp);
-                      if (currentTimeMs !== null) readableTime = formatTime(currentTimeMs - startTimeMs);
-                    } else if (offsetIndex !== -1) {
-                      const offset = values[offsetIndex]?.replace(/"/g, '') || '';
-                      if (offset) readableTime = formatTime(Number(offset));
-                    }
-                  }
-                  
-                  const newRow = newHeader.map(colName => {
-                    let origColName = colName;
-                    if (colName === 'mouse description') origColName = 'description';
-                    else if (colName === 'mouse_aoi_top_left_x') origColName = 'aoi_top_left_x';
-                    else if (colName === 'mouse_aoi_top_left_y') origColName = 'aoi_top_left_y';
-                    else if (colName === 'mouse_aoi_bottom_right_x') origColName = 'aoi_bottom_right_x';
-                    else if (colName === 'mouse_aoi_bottom_right_y') origColName = 'aoi_bottom_right_y';
-                    
-                    if (colName === 'time_indicator') return `"${readableTime}"`;
-                    if (colName === 'large_eye_aoi') return largeEyeAoiVal;
-                    if (colName === 'eye description') return eyeDescVal;
-                    if (colName === 'large_mouse_aoi') return largeMouseAoiVal;
-                    if (colName === 'key') return keyVal;
-                    if (colName === 'left_eye_y') return leftEyeYVal;
-                    if (colName === 'right_eye_x') return rightEyeXVal;
-                    if (colName === 'right_eye_y') return rightEyeYVal;
-                    if (colName === 'mouse description' && description === 'Eye gaze sample') return '';
-                    
-                    const origIdx = currentHeader.indexOf(origColName);
-                    return origIdx >= 0 ? (values[origIdx] || '') : '';
-                  });
-                  
-                  const csvLine = newRow.map(v => {
-                    const str = String(v);
-                    return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
-                  }).join(',');
-                  
-                  if (description === 'Eye gaze sample') {
-                    eyeGazeRows.push(csvLine);
-                  } else if (!isTextInputDescription(description)) {
-                    mouseMovementRows.push(csvLine);
-                  }
-                }
-                
-                if (!header) header = newHeader;
+                // all rows already processed above; header initialized earlier
                 console.log(`Processed ${item}: ${lines.length - 1} rows`);
 
               } catch (error) {
