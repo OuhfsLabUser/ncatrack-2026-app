@@ -88,6 +88,41 @@ function stripBOM(s) {
   return (s && s.length > 0 && s.charCodeAt(0) === 0xFEFF) ? s.slice(1) : (s || '');
 }
 
+// calculate robust centroid of two eyes
+function calculateEyeCentroid(lx, ly, rx, ry) {
+  const validLeft = lx !== '' && lx !== null && lx !== undefined;
+  const validRight = rx !== '' && rx !== null && rx !== undefined;
+  if (validLeft && validRight) {
+    return { x: (Number(lx) + Number(rx)) / 2, y: (Number(ly) + Number(ry)) / 2 };
+  }
+  if (validLeft) return { x: Number(lx), y: Number(ly) };
+  if (validRight) return { x: Number(rx), y: Number(ry) };
+  return { x: null, y: null };
+}
+
+// hit test AOI inside a browser environment
+function getAoiAtPoint(x, y) {
+  try {
+    if (typeof document !== 'undefined' && document.elementFromPoint) {
+      const scrollX = (typeof window !== 'undefined' && window.scrollX) ? window.scrollX : 0;
+      const scrollY = (typeof window !== 'undefined' && window.scrollY) ? window.scrollY : 0;
+      const el = document.elementFromPoint(x - scrollX, y - scrollY);
+      if (el) {
+        // try data-component-name, id, first class
+        let comp = el.getAttribute('data-component-name') || el.id || '';
+        if (!comp && el.className && typeof el.className === 'string') {
+          comp = el.className.split(' ')[0] || '';
+        }
+        return comp || '';
+      }
+    }
+  } catch (e) {
+    // defensive: if DOM access fails, return empty
+    return '';
+  }
+  return '';
+}
+
 // Format milliseconds to human-readable time (e.g., "1min25s", "45s")
 function formatTime(ms) {
   if (ms < 0 || ms === null || ms === undefined || ms === '') return '';
@@ -1107,13 +1142,27 @@ router.post('/data', async (req, res) => {
 
                 for (const { values } of validRows) {
                   const description = values[descriptionIndex]?.replace(/"/g, '') || '';
-                  const eyeAoiVal = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
+                  const rawEyeAoi = eyeAoiIdxCurrent >= 0 ? (values[eyeAoiIdxCurrent]?.replace(/"/g, '') || '') : '';
                   const mouseAoiVal = mouseAoiIdxCurrent >= 0 ? (values[mouseAoiIdxCurrent]?.replace(/"/g, '') || '') : (description && description !== 'Eye gaze sample' ? description : '');
                   const keyVal = keyIdxCurrent >= 0 ? values[keyIdxCurrent] || '' : '';
                   const leftEyeXVal = leftEyeXIdx >= 0 ? values[leftEyeXIdx] || '' : '';
                   const leftEyeYVal = leftEyeYIdx >= 0 ? values[leftEyeYIdx] || '' : '';
                   const rightEyeXVal = rightEyeXIdx >= 0 ? values[rightEyeXIdx] || '' : '';
                   const rightEyeYVal = rightEyeYIdx >= 0 ? values[rightEyeYIdx] || '' : '';
+
+                  // compute robust centroid and lookup AOI (browser DOM may not be available)
+                  let computedAoi = '';
+                  const centroid = calculateEyeCentroid(leftEyeXVal, leftEyeYVal, rightEyeXVal, rightEyeYVal);
+                  if (centroid.x !== null && centroid.y !== null) {
+                    try {
+                      const hit = getAoiAtPoint(centroid.x, centroid.y);
+                      computedAoi = hit || '';
+                    } catch (e) {
+                      computedAoi = '';
+                    }
+                  }
+                  // prefer computed AOI if available, else fall back to raw value, default to background
+                  const eyeAoiVal = computedAoi || rawEyeAoi || 'background';
 
                   let readableTime = '';
                   if (startTimeMs !== null) {
